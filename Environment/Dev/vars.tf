@@ -25,3 +25,21 @@ variable "account_replication_type" {
   description = "The replication type of the Storage Account. Valid values are: 'LRS', 'GRS', 'RAGRS', and 'ZRS'."
   type        = string
 }
+
+variable "vnet_name" {
+  description = "Name of the Virtual Network"
+  type        = string
+
+}
+
+variable "address_space" {
+  description = "Address space for the Virtual Network"
+  type        = list(string)
+
+}
+
+variable "dns_servers" {
+  description = "Custom DNS servers for the Virtual Network"
+  type        = list(string)
+
+}
