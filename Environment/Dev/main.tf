@@ -44,3 +44,16 @@ module "PIP" {
   allocation_method = var.allocation_method
 
 }
+
+module "Nic" {
+  depends_on                    = [module.rg, module.SubNet, module.PIP]
+  source                        = "../../Modules/Nic"
+  nic_name                      = var.nic_name
+  location                      = var.location
+  rg_name                       = var.rg_name
+  subnet_id                     = module.SubNet.subnet_id
+  nic_ip_config_name            = var.nic_ip_config_name
+  private_ip_address_allocation = var.private_ip_address_allocation
+
+
+}
