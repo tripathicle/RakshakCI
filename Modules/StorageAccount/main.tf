@@ -1,4 +1,4 @@
-resource "azurerm_storage_account" "RakshakCI-Storage" {
+resource "azurerm_storage_account" "RakshakCI-Storage1" {
   name = var.stg_name
   location =var.location
   resource_group_name = var.rg_name
