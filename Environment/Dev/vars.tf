@@ -53,3 +53,13 @@ variable "subnet_address_prefix" {
   type        = list(string)
 
 }
+
+variable "pip_name" {
+  description = "Name of the Public IP"
+  type        = string
+
+}
+variable "allocation_method" {
+  description = "Allocation method for the Public IP"
+  type        = string
+}

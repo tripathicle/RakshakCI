@@ -34,3 +34,13 @@ module "SubNet" {
   address_prefixes = var.subnet_address_prefix
 
 }
+
+module "PIP" {
+  depends_on        = [module.rg]
+  source            = "../../Modules/PIP"
+  pip_name          = var.pip_name
+  location          = var.location
+  rg_name           = var.rg_name
+  allocation_method = var.allocation_method
+
+}
