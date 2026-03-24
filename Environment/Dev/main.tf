@@ -24,3 +24,13 @@ module "Vnet" {
   vnet_address_space = var.address_space
   dns_servers        = var.dns_servers
 }
+
+module "SubNet" {
+  depends_on       = [module.Vnet]
+  source           = "../../Modules/SubNet"
+  subnet_name      = var.subnet_name
+  rg_name          = var.rg_name
+  vnet_name        = module.Vnet.vnet_name
+  address_prefixes = var.subnet_address_prefix
+
+}

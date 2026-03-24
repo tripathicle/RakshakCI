@@ -43,3 +43,13 @@ variable "dns_servers" {
   type        = list(string)
 
 }
+variable "subnet_name" {
+  description = "Name of the Subnet"
+  type        = string
+
+}
+variable "subnet_address_prefix" {
+  description = "Address prefix for the Subnet"
+  type        = list(string)
+
+}
