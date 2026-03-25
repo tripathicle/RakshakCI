@@ -46,14 +46,51 @@ module "PIP" {
 }
 
 module "Nic" {
-  depends_on                    = [module.rg, module.SubNet, module.PIP]
-  source                        = "../../Modules/Nic"
-  nic_name                      = var.nic_name
-  location                      = var.location
-  rg_name                       = var.rg_name
+  depends_on = [module.SubNet]
+  source     = "../../Modules/Nic"
+  nic_name   = var.nic_name
+  location   = var.location
+  rg_name    = var.rg_name
+  # terraform will automatically create the dependency between Nic and SubNet module because we are using the output of SubNet module in Nic module
   subnet_id                     = module.SubNet.subnet_id
   nic_ip_config_name            = var.nic_ip_config_name
   private_ip_address_allocation = var.private_ip_address_allocation
+  #pip_id taking the value from module PIP and passing to Nic module
+  #passing the value of pip_id from module PIP to Nic module dynamically using module.PIP.pip_id
+  # in this case we dont need to create a variable  in vars.tf and pass the value 
+  public_ip_id = module.PIP.pip_id
+  nsg_id       = module.Nsg.nsg_id
 
+}
+
+module "VM" {
+  depends_on = [module.SubNet]
+  source     = "../../Modules/VM"
+  vm_name    = var.vm_name
+  location   = var.location
+  rg_name    = var.rg_name
+  vm_size    = var.vm_size
+  #2 pain point - hardcoded
+  admin_username = var.admin_username
+  #2 pain point - hardcoded
+  admin_password               = var.admin_password
+  os_disk_name                 = var.os_disk_name
+  os_disk_caching              = var.os_disk_caching
+  os_disk_storage_account_type = var.os_disk_storage_account_type
+  image_publisher              = var.image_publisher
+  image_offer                  = var.image_offer
+  image_sku                    = var.image_sku
+  image_version                = var.image_version
+  nic_id                       = module.Nic.nic_id
+  # pip_id                       = module.PIP.pip_id
+
+}
+
+module "Nsg" {
+  depends_on = [module.rg]
+  source     = "../../Modules/Nsg"
+  nsg_name   = var.nsg_name
+  location   = var.location
+  rg_name    = var.rg_name
 
 }
