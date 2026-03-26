@@ -98,9 +98,6 @@ module "VM" {
   image_sku                    = var.image_sku
   image_version                = var.image_version
   nic_name                     = module.Nic.nic_name
-
-
-
 }
 
 module "Nsg" {
