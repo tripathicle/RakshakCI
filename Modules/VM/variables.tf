@@ -31,10 +31,9 @@ variable "admin_password" {
 
 }
 
-variable "nic_id" {
-  description = "ID of the network interface"
+variable "nic_name" {
+  description = "Name of the network interface"
   type        = string
-
 }
 variable "os_disk_name" {
   description = "Name of the OS disk"

@@ -11,7 +11,9 @@ resource "azurerm_linux_virtual_machine" "vm" {
   admin_password = var.admin_password
 
   #passing the nic id to the vm module
-  network_interface_ids = [var.nic_id]
+
+  #now we are fetching the nic id from the data source and passing it to the vm module
+  network_interface_ids = [data.azurerm_network_interface.data-nic.id ]
 
   os_disk {
     name                 = var.os_disk_name
