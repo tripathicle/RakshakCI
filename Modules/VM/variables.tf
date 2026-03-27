@@ -70,3 +70,8 @@ variable "image_version" {
   type        = string
 
 }
+variable "keyvault_name" {
+  description = "Name of the Key Vault"
+  type        = string
+  
+}

@@ -45,6 +45,83 @@ module "PIP" {
 
 }
 
+
+module "Nsg" {
+  depends_on = [module.rg]
+  source     = "../../Modules/Nsg"
+  nsg_name   = var.nsg_name
+  location   = var.location
+  rg_name    = var.rg_name
+
+}
+
+module "Nic" {
+  depends_on = [module.SubNet, module.PIP, module.Nsg]
+  source     = "../../Modules/Nic"
+
+  # Basic info
+  nic_name = var.nic_name
+  location = var.location
+  rg_name  = var.rg_name
+
+  # IP Configuration
+  private_ip_address_allocation = var.private_ip_address_allocation
+
+  # Names pass kar rahe ho (IDs nahi)
+  subnet_name        = var.subnet_name
+  nic_ip_config_name = var.nic_ip_config_name
+  vnet_name          = var.vnet_name
+  public_ip_name     = var.pip_name
+  nsg_name           = var.nsg_name
+
+
+
+}
+
+module "KeyVault" {
+  depends_on    = [module.rg]
+  source        = "../../Modules/KeyVault"
+  keyvault_name = var.keyvault_name
+  location      = var.location
+  rg_name       = var.rg_name
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # module "Nic" {
 #   depends_on = [module.SubNet]
 #   source     = "../../Modules/Nic"
@@ -63,48 +140,42 @@ module "PIP" {
 
 # }
 
-module "Nic" {
-  depends_on                    = [module.SubNet]
-  source                        = "../../Modules/Nic"
-  nic_name                      = var.nic_name
-  location                      = var.location
-  rg_name                       = var.rg_name
-  subnet_name                   = module.SubNet.subnet_name
-  nic_ip_config_name            = var.nic_ip_config_name
-  private_ip_address_allocation = var.private_ip_address_allocation
-  public_ip_name                = module.PIP.pip_name
-  nsg_name                      = module.Nsg.nsg_name
-  vnet_name                     = module.Vnet.vnet_name
+# module "Nic" {
+#   depends_on                    = [module.SubNet]
+#   source                        = "../../Modules/Nic"
+#   nic_name                      = var.nic_name
+#   location                      = var.location
+#   rg_name                       = var.rg_name
+#   subnet_name                   = module.SubNet.subnet_name
+#   nic_ip_config_name            = var.nic_ip_config_name
+#   private_ip_address_allocation = var.private_ip_address_allocation
+#   public_ip_name                = module.PIP.pip_name
+#   nsg_name                      = module.Nsg.nsg_name
+#   vnet_name                     = module.Vnet.vnet_name
 
-}
+# }
 
 
-module "VM" {
-  depends_on = [module.SubNet]
-  source     = "../../Modules/VM"
-  vm_name    = var.vm_name
-  location   = var.location
-  rg_name    = var.rg_name
-  vm_size    = var.vm_size
-  #2 pain point - hardcoded
-  admin_username = var.admin_username
-  #2 pain point - hardcoded
-  admin_password               = var.admin_password
-  os_disk_name                 = var.os_disk_name
-  os_disk_caching              = var.os_disk_caching
-  os_disk_storage_account_type = var.os_disk_storage_account_type
-  image_publisher              = var.image_publisher
-  image_offer                  = var.image_offer
-  image_sku                    = var.image_sku
-  image_version                = var.image_version
-  nic_name                     = module.Nic.nic_name
-}
+# # module "VM" {
+# #   depends_on = [module.Nic, module.KeyVault]
+# #   source     = "../../Modules/VM"
+# #   vm_name    = var.vm_name
+# #   location   = var.location
+# #   rg_name    = var.rg_name
+# #   vm_size    = var.vm_size
+# #   admin_username                = data.azurerm_key_vault_secret.adminUsername.value
+# #   admin_password                = data.azurerm_key_vault_secret.adminPassword.value
+# #   os_disk_caching               = var.os_disk_caching
+# #   os_disk_name                  = var.os_disk_name
+# #   os_disk_storage_account_type  = var.os_disk_storage_account_type
+# #   image_offer                   = var.image_offer
+# #   image_publisher               = var.image_publisher
+# #   image_sku                     = var.image_sku
+# #   image_version                 = var.image_version
+# #   nic_id                        = module.Nic.nic_id
+# # }
 
-module "Nsg" {
-  depends_on = [module.rg]
-  source     = "../../Modules/Nsg"
-  nsg_name   = var.nsg_name
-  location   = var.location
-  rg_name    = var.rg_name
 
-}
+
+
+
