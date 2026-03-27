@@ -107,15 +107,15 @@ variable "vm_size" {
   description = "Size of the Virtual Machine"
   type        = string
 }
-variable "admin_username" {
-  description = "Admin username for the Virtual Machine"
-  type        = string
-}
+# variable "admin_username" {
+#   description = "Admin username for the Virtual Machine"
+#   type        = string
+# }
 
-variable "admin_password" {
-  description = "Admin password for the Virtual Machine"
-  type        = string
-}
+# # variable "admin_password" {
+# #   description = "Admin password for the Virtual Machine"
+# #   type        = string
+# }
 variable "os_disk_name" {
   description = "Name of the OS disk"
   type        = string
@@ -147,10 +147,25 @@ variable "image_version" {
 
 #Nsg
 
+
+
+variable "keyvault_name" {
+  description = "Name of the Key Vault"
+  type        = string
+}
+
+
 variable "nsg_name" {
   description = "Name of the Network Security Group"
   type        = string
+
 }
+
+
+
+
+
+
 
 
 
