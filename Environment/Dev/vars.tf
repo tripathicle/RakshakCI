@@ -107,14 +107,15 @@ variable "vm_size" {
   description = "Size of the Virtual Machine"
   type        = string
 }
-# variable "admin_username" {
+# variable "vmUsername " {
 #   description = "Admin username for the Virtual Machine"
 #   type        = string
 # }
 
-# # variable "admin_password" {
-# #   description = "Admin password for the Virtual Machine"
-# #   type        = string
+# variable "vmPassword" {
+#   description = "Admin password for the Virtual Machine"
+#   type        = string
+
 # }
 variable "os_disk_name" {
   description = "Name of the OS disk"
@@ -161,6 +162,19 @@ variable "nsg_name" {
 
 }
 
+variable "admin_username" {
+  description = "Admin username for the virtual machine"
+  type        = string
+
+}
+variable "admin_password" {
+  description = "Admin password for the virtual machine"
+  type        = string
+  sensitive   = true
+}
+# variable "nic_id" {
+#   type = string
+# }
 
 
 

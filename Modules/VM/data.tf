@@ -1,20 +1,24 @@
-data "azurerm_network_interface" "data-nic" {
-    name                = var.nic_name
-    resource_group_name = var.rg_name
+# data "azurerm_network_interface" "data-nic" {
+#     name                = var.nic_name
+#     resource_group_name = var.rg_name
   
-}
+# }
 
-#fetching the keyvault details using existing data source
-data "azurerm_key_vault" "kv" {
-  name                = var.keyvault_name
-  resource_group_name = var.rg_name
-}
-data "azurerm_key_vault_secret" "adminUsername" {
-  name         = "adminUsername"
-  key_vault_id = data.azurerm_key_vault.kv.id
-}
+# #fetching the keyvault details using existing data source
+# #key-vault name is "kv"
+# data "azurerm_key_vault" "kv" {
+#   name                = var.keyvault_name
+#   resource_group_name = var.rg_name
+# }  
 
-data "azurerm_key_vault_secret" "adminPassword" {
-  name         = "adminPassword"
-  key_vault_id = data.azurerm_key_vault.kv.id
-}
+# #keyvault secret for admin username
+# data "azurerm_key_vault_secret" "vmUsername" {
+#   name         = "vmUsername"
+#   key_vault_id = data.azurerm_key_vault.kv.id
+# }
+
+# #keyvault secret for admin password
+# data "azurerm_key_vault_secret" "vmPassword" {
+#   name         = "vmPassword"
+#   key_vault_id = data.azurerm_key_vault.kv.id
+# }

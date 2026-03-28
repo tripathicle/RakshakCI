@@ -122,6 +122,7 @@ module "KeyVault" {
 
 
 
+
 # module "Nic" {
 #   depends_on = [module.SubNet]
 #   source     = "../../Modules/Nic"
@@ -155,27 +156,31 @@ module "KeyVault" {
 
 # }
 
+ module "VM" {
+  depends_on = [module.Nic, module.Vnet, module.SubNet]
+  source     = "../../Modules/VM"
 
-# # module "VM" {
-# #   depends_on = [module.Nic, module.KeyVault]
-# #   source     = "../../Modules/VM"
-# #   vm_name    = var.vm_name
-# #   location   = var.location
-# #   rg_name    = var.rg_name
-# #   vm_size    = var.vm_size
-# #   admin_username                = data.azurerm_key_vault_secret.adminUsername.value
-# #   admin_password                = data.azurerm_key_vault_secret.adminPassword.value
-# #   os_disk_caching               = var.os_disk_caching
-# #   os_disk_name                  = var.os_disk_name
-# #   os_disk_storage_account_type  = var.os_disk_storage_account_type
-# #   image_offer                   = var.image_offer
-# #   image_publisher               = var.image_publisher
-# #   image_sku                     = var.image_sku
-# #   image_version                 = var.image_version
-# #   nic_id                        = module.Nic.nic_id
-# # }
+  # Basic info
+  vm_name   = var.vm_name
+  location  = var.location
+  rg_name   = var.rg_name
+
+  # VM Config
+  vm_size           = var.vm_size
+  admin_username    = var.admin_username
+  admin_password    = var.admin_password
+  image_publisher        = var.image_publisher
+  image_offer              = var.image_offer
+  image_sku                = var.image_sku
+  image_version            = var.image_version
+  os_disk_name            = var.os_disk_name
+  os_disk_caching         = var.os_disk_caching
+  os_disk_storage_account_type = var.os_disk_storage_account_type
+  nic_id = module.Nic.nic_id
+  nic_name = var.nic_name
+
+ 
 
 
-
-
-
+   
+ }
