@@ -28,6 +28,7 @@ resource "azurerm_key_vault" "keyvault" {
     ]
   }
 
+
   
 }
 
