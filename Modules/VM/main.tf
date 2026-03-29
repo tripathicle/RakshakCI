@@ -2,6 +2,7 @@ resource "azurerm_virtual_machine" "vm" {
   name                  = var.vm_name
   location              = var.location
   resource_group_name   = var.rg_name
+  #network_interface_ids = [var.nic_id]
   network_interface_ids = [var.nic_id]
   vm_size               = var.vm_size
 
@@ -21,8 +22,8 @@ resource "azurerm_virtual_machine" "vm" {
 
   os_profile {
     computer_name  = var.vm_name
-    admin_username = var.admin_username
-    admin_password = var.admin_password
+    admin_username = data.azurerm_key_vault_secret.admin_username.value
+    admin_password = data.azurerm_key_vault_secret.admin_password.value
   }
 
   os_profile_linux_config {

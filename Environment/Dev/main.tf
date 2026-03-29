@@ -55,28 +55,30 @@ module "Nsg" {
 
 }
 
-module "Nic" {
-  depends_on = [module.SubNet, module.PIP, module.Nsg]
+module "Nic"  {
+  depends_on = [module.SubNet]
   source     = "../../Modules/Nic"
-
-  # Basic info
-  nic_name = var.nic_name
-  location = var.location
-  rg_name  = var.rg_name
-
-  # IP Configuration
+  nic_name   = var.nic_name
+  location   = var.location
+  rg_name    = var.rg_name
+  vnet_name = var.vnet_name
+  subnet_name = var.subnet_name
+  public_ip_name = var.pip_name
+  nsg_name = var.nsg_name
+  # terraform will automatically create the dependency between Nic
+  nic_ip_config_name            = var.nic_ip_config_name
   private_ip_address_allocation = var.private_ip_address_allocation
-
-  # Names pass kar rahe ho (IDs nahi)
-  subnet_name        = var.subnet_name
-  nic_ip_config_name = var.nic_ip_config_name
-  vnet_name          = var.vnet_name
-  public_ip_name     = var.pip_name
-  nsg_name           = var.nsg_name
-
+  #pip_id taking the value from module PIP and passing to Nic module
+  #passing the value of pip_id from module PIP to Nic module dynamically using module.PIP.pip_id
+  # in this case we dont need to create a variable  in vars.tf and pass the value 
+  # public_ip_id = module.PIP.pip_id
+  # nsg_id       = module.Nsg.nsg_id
+  # subnet_id                     = module.SubNet.subnet_id
+   
 
 
 }
+
 
 module "KeyVault" {
   depends_on    = [module.rg]
@@ -86,16 +88,26 @@ module "KeyVault" {
   rg_name       = var.rg_name
 
 }
+ module "VM" {
+  depends_on = [module.KeyVault,module.Nic] 
+  source     = "../../Modules/VM"
 
-
-
-
-
-
-
-
-
-
+  keyvault_name = var.keyvault_name
+  vm_name       = var.vm_name
+  location      = var.location
+  rg_name       = var.rg_name
+  vm_size       = var.vm_size
+  # passing the value of nic_name from variable to VM module
+  nic_name = module.Nic.nic_name   
+  nic_id = module.Nic.nic_id  
+  image_publisher = var.image_publisher
+  image_offer     = var.image_offer
+  image_sku       = var.image_sku
+  image_version   = var.image_version
+  os_disk_name    = var.os_disk_name
+  os_disk_caching = var.os_disk_caching
+  os_disk_storage_account_type = var.os_disk_storage_account_type
+}
 
 
 
@@ -129,7 +141,11 @@ module "KeyVault" {
 #   nic_name   = var.nic_name
 #   location   = var.location
 #   rg_name    = var.rg_name
-#   # terraform will automatically create the dependency between Nic and SubNet module because we are using the output of SubNet module in Nic module
+#   vnet_name = var.vnet_name
+#   subnet_name = var.subnet_name
+#   public_ip_name = var.pip_name
+#   nsg_name = var.nsg_name
+#   # terraform will automatically create the dependency between Nic
 #   subnet_id                     = module.SubNet.subnet_id
 #   nic_ip_config_name            = var.nic_ip_config_name
 #   private_ip_address_allocation = var.private_ip_address_allocation
@@ -138,49 +154,12 @@ module "KeyVault" {
 #   # in this case we dont need to create a variable  in vars.tf and pass the value 
 #   public_ip_id = module.PIP.pip_id
 #   nsg_id       = module.Nsg.nsg_id
-
-# }
-
-# module "Nic" {
-#   depends_on                    = [module.SubNet]
-#   source                        = "../../Modules/Nic"
-#   nic_name                      = var.nic_name
-#   location                      = var.location
-#   rg_name                       = var.rg_name
-#   subnet_name                   = module.SubNet.subnet_name
-#   nic_ip_config_name            = var.nic_ip_config_name
-#   private_ip_address_allocation = var.private_ip_address_allocation
-#   public_ip_name                = module.PIP.pip_name
-#   nsg_name                      = module.Nsg.nsg_name
-#   vnet_name                     = module.Vnet.vnet_name
-
-# }
-
- module "VM" {
-  depends_on = [module.Nic, module.Vnet, module.SubNet]
-  source     = "../../Modules/VM"
-
-  # Basic info
-  vm_name   = var.vm_name
-  location  = var.location
-  rg_name   = var.rg_name
-
-  # VM Config
-  vm_size           = var.vm_size
-  admin_username    = var.admin_username
-  admin_password    = var.admin_password
-  image_publisher        = var.image_publisher
-  image_offer              = var.image_offer
-  image_sku                = var.image_sku
-  image_version            = var.image_version
-  os_disk_name            = var.os_disk_name
-  os_disk_caching         = var.os_disk_caching
-  os_disk_storage_account_type = var.os_disk_storage_account_type
-  nic_id = module.Nic.nic_id
-  nic_name = var.nic_name
-
- 
-
-
    
- }
+
+
+# }
+
+
+
+
+

@@ -59,16 +59,16 @@ variable "image_version" {
 
 }
 
-variable "admin_username" {
-  description = "Admin username for the virtual machine"
-  type        = string
+# variable "admin_username" {
+#   description = "Admin username for the virtual machine"
+#   type        = string
 
-}
-variable "admin_password" {
-  description = "Admin password for the virtual machine"
-  type        = string
-  sensitive   = true
-}
+# }
+# variable "admin_password" {
+#   description = "Admin password for the virtual machine"
+#   type        = string
+#   sensitive   = true
+# }
 
 variable "nic_id" {
   type = string
@@ -77,11 +77,11 @@ variable "nic_id" {
 
 
 
-# #keyvault name variable
-# variable "keyvault_name" {
-#   description = "Name of the Key Vault"
-#   type        = string
+#keyvault name variable
+variable "keyvault_name" {
+  description = "Name of the Key Vault"
+  type        = string
   
-# }
+}
 
 
