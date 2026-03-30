@@ -55,16 +55,16 @@ module "Nsg" {
 
 }
 
-module "Nic"  {
-  depends_on = [module.SubNet]
-  source     = "../../Modules/Nic"
-  nic_name   = var.nic_name
-  location   = var.location
-  rg_name    = var.rg_name
-  vnet_name = var.vnet_name
-  subnet_name = var.subnet_name
+module "Nic" {
+  depends_on     = [module.SubNet]
+  source         = "../../Modules/Nic"
+  nic_name       = var.nic_name
+  location       = var.location
+  rg_name        = var.rg_name
+  vnet_name      = var.vnet_name
+  subnet_name    = var.subnet_name
   public_ip_name = var.pip_name
-  nsg_name = var.nsg_name
+  nsg_name       = var.nsg_name
   # terraform will automatically create the dependency between Nic
   nic_ip_config_name            = var.nic_ip_config_name
   private_ip_address_allocation = var.private_ip_address_allocation
@@ -74,7 +74,7 @@ module "Nic"  {
   # public_ip_id = module.PIP.pip_id
   # nsg_id       = module.Nsg.nsg_id
   # subnet_id                     = module.SubNet.subnet_id
-   
+
 
 
 }
@@ -88,8 +88,8 @@ module "KeyVault" {
   rg_name       = var.rg_name
 
 }
- module "VM" {
-  depends_on = [module.KeyVault,module.Nic] 
+module "VM" {
+  depends_on = [module.KeyVault, module.Nic]
   source     = "../../Modules/VM"
 
   keyvault_name = var.keyvault_name
@@ -98,15 +98,37 @@ module "KeyVault" {
   rg_name       = var.rg_name
   vm_size       = var.vm_size
   # passing the value of nic_name from variable to VM module
-  nic_name = module.Nic.nic_name   
-  nic_id = module.Nic.nic_id  
-  image_publisher = var.image_publisher
-  image_offer     = var.image_offer
-  image_sku       = var.image_sku
-  image_version   = var.image_version
-  os_disk_name    = var.os_disk_name
-  os_disk_caching = var.os_disk_caching
+  nic_name                     = module.Nic.nic_name
+  nic_id                       = module.Nic.nic_id
+  image_publisher              = var.image_publisher
+  image_offer                  = var.image_offer
+  image_sku                    = var.image_sku
+  image_version                = var.image_version
+  os_disk_name                 = var.os_disk_name
+  os_disk_caching              = var.os_disk_caching
   os_disk_storage_account_type = var.os_disk_storage_account_type
+}
+
+module "SqlServer" {
+  depends_on         = [module.rg]
+  source             = "../../Modules/SqlServer"
+  sql_server_name    = var.sql_server_name
+  location           = var.location
+  rg_name            = var.rg_name
+  sql_admin_username = var.sql_admin_username
+  sql_admin_password = var.sql_admin_password
+
+}
+
+module "SqlDataBase" {
+  depends_on         = [module.SqlServer]
+  source             = "../../Modules/SqlDataBase"
+  database_name      = var.database_name
+  sku_name           = var.sku_name
+  max_size_gb        = var.max_size_gb
+  zone_redundant     = var.zone_redundant
+  read_replica_count = var.read_replica_count
+  server_id          = module.SqlServer.sql_server_id
 }
 
 
@@ -154,7 +176,7 @@ module "KeyVault" {
 #   # in this case we dont need to create a variable  in vars.tf and pass the value 
 #   public_ip_id = module.PIP.pip_id
 #   nsg_id       = module.Nsg.nsg_id
-   
+
 
 
 # }
