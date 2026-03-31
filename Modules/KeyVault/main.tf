@@ -7,6 +7,8 @@ resource "azurerm_key_vault" "keyvault" {
   purge_protection_enabled   = false
   sku_name                   = "standard"
 
+  public_network_access_enabled = var.public_network_access_enabled
+
   # setting up access policy for current user
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
