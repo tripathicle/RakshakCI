@@ -193,7 +193,12 @@ variable "read_replica_count" {
   type        = number
 }
 
-
+#Security best practices
+#keyvault
+variable "public_network_access_enabled" {
+  type    = bool
+  default = true
+}
 
 
 

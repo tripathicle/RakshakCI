@@ -86,6 +86,8 @@ module "KeyVault" {
   keyvault_name = var.keyvault_name
   location      = var.location
   rg_name       = var.rg_name
+  public_network_access_enabled = var.public_network_access_enabled
+
 
 }
 module "VM" {
