@@ -22,8 +22,8 @@ resource "azurerm_virtual_machine" "vm" {
 
   os_profile {
     computer_name  = var.vm_name
-    admin_username = data.azurerm_key_vault_secret.admin_username.value
-    admin_password = data.azurerm_key_vault_secret.admin_password.value
+    admin_username = data.azurerm_key_vault_secret.AdminUsername.value
+    admin_password = data.azurerm_key_vault_secret.AdminPasswordset.value
   }
 
   os_profile_linux_config {
