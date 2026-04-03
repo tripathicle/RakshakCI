@@ -68,21 +68,21 @@ variable "public_ip_name" {
 
 
 
-# variable "public_ip_id" {
-#     description = "ID of the Public IP address (optional)"
-#     type        = string
-#     default     = null
+variable "public_ip_id" {
+    description = "ID of the Public IP address (optional)"
+    type        = string
+    default     = null
   
-# }
+}
 
 
-# variable "nsg_id" {
-#     description = "ID of the Network Security Group"
-#     type        = string
-# }
+variable "nsg_id" {
+    description = "ID of the Network Security Group"
+    type        = string
+}
 
-# variable "subnet_id" {
-#     description = "ID of the Subnet"
-#     type        = string
+variable "subnet_id" {
+    description = "ID of the Subnet"
+    type        = string
   
-# }
+}

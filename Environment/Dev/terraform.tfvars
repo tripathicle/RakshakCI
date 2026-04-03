@@ -1,4 +1,4 @@
-rg_name                       = "RakshakCi_Rg"
+rg_name                       = "RakshakCi_Rg_pls_do_not_delete_it"
 location                      = "Central India"
 stg_name                      = "rakshakstg1"
 account_tier                  = "Standard"
@@ -25,7 +25,7 @@ image_publisher              = "Canonical"
 image_sku                    = "22_04-lts"
 image_version                = "latest"
 nsg_name                     = "rakshak_nsg"
-keyvault_name                = "rakshakkey"
+keyvault_name                = "rakshakkeyvault"
 
 sql_server_name    = "rakshaksql"
 sql_admin_username = "sqladmin"
@@ -37,7 +37,7 @@ zone_redundant     = false
 read_replica_count = 0
 
 #Security
-public_network_access_enabled =true
+public_network_access_enabled = true
 
 
 

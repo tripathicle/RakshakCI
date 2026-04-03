@@ -72,8 +72,8 @@ module "Nic" {
   #passing the value of pip_id from module PIP to Nic module dynamically using module.PIP.pip_id
   # in this case we dont need to create a variable  in vars.tf and pass the value 
   # public_ip_id = module.PIP.pip_id
-  # nsg_id       = module.Nsg.nsg_id
-  # subnet_id                     = module.SubNet.subnet_id
+  nsg_id    = module.Nsg.nsg_id
+  subnet_id = module.SubNet.subnet_id
 
 
 
@@ -81,11 +81,11 @@ module "Nic" {
 
 
 module "KeyVault" {
-  depends_on    = [module.rg]
-  source        = "../../Modules/KeyVault"
-  keyvault_name = var.keyvault_name
-  location      = var.location
-  rg_name       = var.rg_name
+  depends_on                    = [module.rg]
+  source                        = "../../Modules/KeyVault"
+  keyvault_name                 = var.keyvault_name
+  location                      = var.location
+  rg_name                       = var.rg_name
   public_network_access_enabled = var.public_network_access_enabled
 
 

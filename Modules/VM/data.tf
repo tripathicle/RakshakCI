@@ -12,13 +12,13 @@ data "azurerm_key_vault" "kv" {
 }  
 
 #keyvault secret for admin username
-data "azurerm_key_vault_secret" "admin_username" {
+data "azurerm_key_vault_secret" "AdminUsername" {
   name         = "adminusername"
   key_vault_id = data.azurerm_key_vault.kv.id
 }
 
 #keyvault secret for admin password
-data "azurerm_key_vault_secret" "admin_password" {
-  name         = "adminpassword"
+data "azurerm_key_vault_secret" "AdminPasswordset" {
+  name         = "adminpasswordset"
   key_vault_id = data.azurerm_key_vault.kv.id
 }
