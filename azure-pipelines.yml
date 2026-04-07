@@ -1,5 +1,5 @@
 ---
-trigger: none
+trigger: dev
 pool:
   name: AagentRakshakPoolYml
 jobs:
