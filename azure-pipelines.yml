@@ -1,50 +1,39 @@
----
-trigger: dev
+trigger:
+- dev
+
 pool:
   name: AagentRakshakPoolYml
+
 jobs:
-  - job: terraform init
-    displayName: terraform init
-    steps:
-      - task: TerraformTask@5
-        inputs: null
-        provider: azurerm
-        command: init
-        workingDirectory: $(System.DefaultWorkingDirectory)\Environment\Dev
-        backendServiceArm: Rakshak-pipeline
-        backendAzureRmStorageAccountName: rakshakstg1
-        backendAzureRmContainerName: tfstate
-        backendAzureRmKey: dev.terraform.tfstate
 
+- job: terraform_init
+  displayName: Terraform Init
+  steps:
+  - task: TerraformTask@5
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+      backendServiceArm: 'Rakshak-pipeline'
+      backendAzureRmStorageAccountName: 'rakshakstg1'
+      backendAzureRmContainerName: 'tfstate'
+      backendAzureRmKey: 'dev.terraform.tfstate'
 
-  - job: terraform validate
-    displayName: terraform validate
-    pool: AagentRakshakPoolYml
-    steps:
-       - task: TerraformTask@5
-         inputs:
-         provider: 'azurerm'
-         command: 'validate'
-         workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+- job: terraform_validate
+  displayName: Terraform Validate
+  steps:
+  - task: TerraformTask@5
+    inputs:
+      provider: 'azurerm'
+      command: 'validate'
+      workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
 
-  - job: terraform plan
-    displayName: terraform plan
-    steps:
-      - task: TerraformTask@5
-        inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'''
-        environmentServiceNameAzureRM: 'Rakshak-pipeline'
-
-
-
-      
-
-
-    
-
-      
-      
-
-
+- job: terraform_plan
+  displayName: Terraform Plan
+  steps:
+  - task: TerraformTask@5
+    inputs:
+      provider: 'azurerm'
+      command: 'plan'
+      workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+      environmentServiceNameAzureRM: 'Rakshak-pipeline'
