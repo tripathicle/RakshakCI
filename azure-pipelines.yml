@@ -22,8 +22,13 @@ jobs:
 - job: terraform_validate
   displayName: Terraform Validate
   steps:
-  - task: TerraformTask@5
-    inputs:
+    - task: TerraformTask@5
+      inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+    - task: TerraformTask@5
+      inputs:
       provider: 'azurerm'
       command: 'validate'
       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
@@ -31,6 +36,11 @@ jobs:
 - job: terraform_plan
   displayName: Terraform Plan
   steps:
+  - task: TerraformTask@5
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
   - task: TerraformTask@5
     inputs:
       provider: 'azurerm'
