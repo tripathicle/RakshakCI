@@ -27,6 +27,10 @@ jobs:
       provider: 'azurerm'
       command: 'init'
       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+      backendServiceArm: 'Rakshak-pipeline'
+      backendAzureRmStorageAccountName: 'rakshakstg1'
+      backendAzureRmContainerName: 'tfstate'
+      backendAzureRmKey: 'dev.terraform.tfstate'
 
   - task: TerraformTask@5
     inputs:
@@ -42,6 +46,10 @@ jobs:
       provider: 'azurerm'
       command: 'init'
       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+      backendServiceArm: 'Rakshak-pipeline'
+      backendAzureRmStorageAccountName: 'rakshakstg1'
+      backendAzureRmContainerName: 'tfstate'
+      backendAzureRmKey: 'dev.terraform.tfstate'
 
   - task: TerraformTask@5
     inputs:
