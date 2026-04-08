@@ -19,7 +19,7 @@ jobs:
           backendAzureRmContainerName: 'tfstate'
           backendAzureRmKey: 'dev.terraform.tfstate'
 
-  - job: 
+  - job: terraform_validate
     displayName: terraform validation 
     dependsOn: terraform_init
     pool: AagentRakshakPoolYml
@@ -42,7 +42,7 @@ jobs:
       
   - job: terraform_plan
     displayName: terraform plan
-    dependsOn: terraform_init 
+    dependsOn: terraform_validate
     pool: AagentRakshakPoolYml
     steps:
       - script: echo "terraform plan "
