@@ -1,0 +1,58 @@
+trigger: none
+
+pool:
+ name: AagentRakshakPoolYml
+
+jobs:
+  - job: terraform init
+    displayName: terraform init run
+    steps:
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          backendServiceArm: 'rakshak-app-manual-svc'
+          backendAzureRmStorageAccountName: 'rakshakstg1'
+          backendAzureRmContainerName: 'tfstate'
+          backendAzureRmKey: 'dev.terraform.tfstate'
+  - job: terraform validate
+    displayName: terraform validation
+    steps:
+
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          backendServiceArm: 'rakshak-app-manual-svc'
+          backendAzureRmStorageAccountName: 'rakshakstg1'
+          backendAzureRmContainerName: 'tfstate'
+          backendAzureRmKey: 'dev.terraform.tfstate'
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'validate'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'''
+
+  - job: terraform plan 
+    displayName: terraform plan
+    steps:
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          backendServiceArm: 'rakshak-app-manual-svc'
+          backendAzureRmStorageAccountName: 'rakshakstg1'
+          backendAzureRmContainerName: 'tfstate'
+          backendAzureRmKey: 'dev.terraform.tfstate'
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          environmentServiceNameAzureRM: 'rakshak-app-manual-svc'
+
+           
+         
