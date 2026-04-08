@@ -2,11 +2,14 @@ trigger:
 - dev
 jobs:
 
-  - job:
+  - job: terraform_init
     displayName: verifying terraform init
+
     pool: AagentRakshakPoolYml
     steps:
+      - script: echo "terraform init"
       - task: TerraformTask@5
+      
         inputs:
           provider: 'azurerm'
           command: 'init'
@@ -18,8 +21,10 @@ jobs:
 
   - job: 
     displayName: terraform validation 
+    dependsOn: terraform_init
     pool: AagentRakshakPoolYml
     steps:
+      - script: echo "terraform validation"
       - task: TerraformTask@5
         inputs:
           provider: 'azurerm'
@@ -35,4 +40,28 @@ jobs:
           command: 'validate'
           workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
       
-      
+  - job: terraform_plan
+    displayName: terraform plan
+    dependsOn: terraform_init 
+    pool: AagentRakshakPoolYml
+    steps:
+      - script: echo "terraform plan "
+
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          backendServiceArm: 'rakshak-app-manual-svc'
+          backendAzureRmStorageAccountName: 'rakshakstg1'
+          backendAzureRmContainerName: 'tfstate'
+          backendAzureRmKey: 'dev.terraform.tfstate'
+
+
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          environmentServiceNameAzureRM: 'rakshak-app-manual-svc'
+
