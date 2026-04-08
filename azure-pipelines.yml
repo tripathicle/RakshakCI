@@ -22,13 +22,14 @@ jobs:
 - job: terraform_validate
   displayName: Terraform Validate
   steps:
-    - task: TerraformTask@5
-      inputs:
+  - task: TerraformTask@5
+    inputs:
       provider: 'azurerm'
       command: 'init'
       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
-    - task: TerraformTask@5
-      inputs:
+
+  - task: TerraformTask@5
+    inputs:
       provider: 'azurerm'
       command: 'validate'
       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
@@ -41,9 +42,198 @@ jobs:
       provider: 'azurerm'
       command: 'init'
       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+
   - task: TerraformTask@5
     inputs:
       provider: 'azurerm'
       command: 'plan'
       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
       environmentServiceNameAzureRM: 'Rakshak-pipeline'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# trigger:
+# - dev
+
+# pool:
+#   name: AagentRakshakPoolYml
+
+# jobs:
+
+# - job: terraform_init
+#   displayName: Terraform Init
+#   steps:
+#   - task: TerraformTask@5
+#     inputs:
+#       provider: 'azurerm'
+#       command: 'init'
+#       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+#       backendServiceArm: 'Rakshak-pipeline'
+#       backendAzureRmStorageAccountName: 'rakshakstg1'
+#       backendAzureRmContainerName: 'tfstate'
+#       backendAzureRmKey: 'dev.terraform.tfstate'
+
+# - job: terraform_validate
+#   displayName: Terraform Validate
+#   steps:
+#     - task: TerraformTask@5
+#       inputs:
+#       provider: 'azurerm'
+#       command: 'init'
+#       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+#     - task: TerraformTask@5
+#       inputs:
+#       provider: 'azurerm'
+#       command: 'validate'
+#       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+
+# - job: terraform_plan
+#   displayName: Terraform Plan
+#   steps:
+#   - task: TerraformTask@5
+#     inputs:
+#       provider: 'azurerm'
+#       command: 'init'
+#       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+#   - task: TerraformTask@5
+#     inputs:
+#       provider: 'azurerm'
+#       command: 'plan'
+#       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+#       environmentServiceNameAzureRM: 'Rakshak-pipeline'
