@@ -1,22 +1,17 @@
 trigger:
 - dev
-
-pool:
- name: AgentRakshakPoolYml
-
 jobs:
 
-  - job: terraform test init
+  - job: 
     displayName: verifying terraform init
+    pool: AagentRakshakPoolYml
     steps:
-      inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
-    backendServiceArm: 'rakshak-app-manual-svc'
-    backendAzureRmStorageAccountName: 'rakshakstg1'
-    backendAzureRmContainerName: 'tfstate'
-    backendAzureRmKey: 'dev.terraform.tfstate'
-      
-      
-      
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          backendServiceArm: 'rakshak-app-manual-svc'
+          backendAzureRmStorageAccountName: 'rakshakstg1'
+          backendAzureRmContainerName: 'tfstate'
+          backendAzureRmKey: 'dev.terraform.tfstate'
