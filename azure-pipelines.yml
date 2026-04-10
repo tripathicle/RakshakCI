@@ -4,6 +4,8 @@ trigger:
      
      - dev
 
+
+
 jobs:
   - job: Terraform_init
     displayName: terraform init 
@@ -22,6 +24,7 @@ jobs:
   - job: terraform_validate
     displayName: terradform validate
     dependsOn: terraform_init
+    pool: Rakshak Pipelines
     steps:
       - task: TerraformTask@5
         inputs:
@@ -42,6 +45,7 @@ jobs:
   - job: terraform_plan
     displayName: terraform plan
     dependsOn: terraform_validate
+    pool: Rakshak Pipelines
     steps:
       - task: TerraformTask@5
         inputs:
