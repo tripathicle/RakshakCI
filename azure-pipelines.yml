@@ -4,14 +4,17 @@ trigger:
      
      - dev
 
-
-
 jobs:
-  - template: Templates/terraform_init.yml@self
-
-  - job: Terraform_init
-    displayName: terraform init 
+  - job: terraform_init
+    displayName: terraform init
     pool: Rakshak Pipelines
+
+    steps:
+    - checkout: self
+
+    - template: templates/terraform-init.yml
+
+  
   
    # steps:
    #   - template: Templates/terraform_init.yml
