@@ -58,6 +58,24 @@ jobs:
           environmentServiceNameAzureRM: 'rakshak-svc'
 
 
+  - job: terraform_Apply
+    displayName: terraform Apply
+    dependsOn: terraform_plan
+    pool: Rakshak Pipelines
+    steps:
+      - template: templates/terraform-init.yml
+     
+      
+
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          environmentServiceNameAzureRM: 'rakshak-svc'
+
+
+
       
 
 
