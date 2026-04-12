@@ -5,25 +5,15 @@ trigger:
      - dev
 
 stages:
-  - stage: terraform init
-    displayName: terraform init
+  - stage: terraforminit
+    displayName: terraform stage init
     pool: Rakshak Pipelines
     jobs:
-      - job: terraforminit
-        displayName: terraformjoninit
-        steps:
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
-              backendServiceArm: 'rakshak-svc'
-              backendAzureRmStorageAccountName: 'rakshakstg1'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'dev.terraform.tfstate'
+    - template: templates/terraforminit-jobs.yml
+      
 
-  - stage: terraform validate
-    displayName: terraform validate
+  - stage: terraformvalidate
+    displayName: terraform stage validate
     dependsOn: terraforminit
     pool: Rakshak Pipelines
     jobs:
@@ -40,8 +30,8 @@ stages:
               backendAzureRmContainerName: 'tfstate'
               backendAzureRmKey: 'dev.terraform.tfstate'
 
-  - stage: terraform Plan
-    displayName: terraform  Plan
+  - stage: terraformPlan
+    displayName: terraform stage Plan
     dependsOn: terraformvalidate
     pool: Rakshak Pipelines
     jobs:
@@ -59,8 +49,8 @@ stages:
               backendAzureRmKey: 'dev.terraform.tfstate'            
           
           
-  - stage: terraform Apply
-    displayName: terraform apply
+  - stage: terraformApply
+    displayName: terraform stage apply
     dependsOn: terraformPlan
     pool: Rakshak Pipelines
     jobs:
