@@ -39,9 +39,44 @@ stages:
               backendAzureRmStorageAccountName: 'rakshakstg1'
               backendAzureRmContainerName: 'tfstate'
               backendAzureRmKey: 'dev.terraform.tfstate'
+
+  - stage: terraformPlan
+    displayName: terraform stage Plan
+    dependsOn: terraformvalidate
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraformPlan
+        displayName: terraform stage plan
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+              backendServiceArm: 'rakshak-svc'
+              backendAzureRmStorageAccountName: 'rakshakstg1'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'dev.terraform.tfstate'            
           
           
-         
+  - stage: terraformApply
+    displayName: terraform stage apply
+    dependsOn: terraformPlan
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraformPlan
+        displayName: terraform stage Apply
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+              backendServiceArm: 'rakshak-svc'
+              backendAzureRmStorageAccountName: 'rakshakstg1'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'dev.terraform.tfstate'            
+          
 
 
     
