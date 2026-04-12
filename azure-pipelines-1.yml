@@ -9,7 +9,7 @@ stages:
     displayName: terraform stage init
     pool: Rakshak Pipelines
     jobs:
-    - template: templates/terraforminit-jobs.yml
+    - template: templates/terraform-init-jobs.yml
       
 
   - stage: terraformvalidate
