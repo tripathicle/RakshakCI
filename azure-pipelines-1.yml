@@ -24,7 +24,7 @@ stages:
     jobs:
     # this templates calling from diffrent repo
     # path - file name and repo name
-      - template: jobinit.yml@templates
+      - template: templates/jobinit.yml@templates
 
    # - template: templates/terraform-init-jobs.yml
       
