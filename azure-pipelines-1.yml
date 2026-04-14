@@ -1,88 +1,354 @@
 resources:
- repositories:
- # we will give here repo name 
-   - repository: templates
-     type: github
-     name: tripathicle/templates
- # we will give the svc name here
-     endpoint: pat-github-svc-pipeline
-     ref: refs/heads/main
-
-
-
+  repositories:
+    - repository: templates
+      type: github
+      name: tripathicle/templates
+      endpoint: pat-github-svc-pipeline
+      ref: refs/heads/main
 
 trigger:
- branches:
-   include:
-     
-     - dev
+  branches:
+    include:
+      - dev
 
 stages:
-  - stage: terraforminit
-    displayName: terraform stage init
-    pool: Rakshak Pipelines
-    jobs:
-    # this templates calling from diffrent repo
-    # path - file name and repo name
-      - template: jobinit.yml@templates
 
-   # - template: templates/terraform-init-jobs.yml
+# 🔹 INIT STAGE
+- stage: Init
+  displayName: Terraform Init Stage
+  pool: Rakshak Pipelines
+  jobs:
+    - template: templates/jobinit.yml@templates
+      parameters:
+        workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+        serviceConnection: 'rakshak-svc'
+        storageAccount: 'rakshakstg1'
+        containerName: 'tfstate'
+        tfstateKey: 'dev.terraform.tfstate'
+
+# 🔹 VALIDATE STAGE
+- stage: Validate
+  displayName: Terraform Validate Stage
+  dependsOn: Init   # ✅ FIXED (stage name match)
+  pool: Rakshak Pipelines
+  jobs:
+    - template: templates/terraform-validate.yml@templates
+      parameters:
+        workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+
+# 🔹 PLAN STAGE
+- stage: Plan
+  displayName: Terraform Plan Stage
+  dependsOn: Validate
+  pool: Rakshak Pipelines
+  jobs:
+    - template: templates/terraform-plan.yml@templates
+      parameters:
+        workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+        serviceConnection: 'rakshak-svc'
+        storageAccount: 'rakshakstg1'
+        containerName: 'tfstate'
+        tfstateKey: 'dev.terraform.tfstate'
+
+# 🔹 APPLY STAGE
+- stage: Apply
+  displayName: Terraform Apply Stage
+  dependsOn: Plan   # ✅ FIXED
+  pool: Rakshak Pipelines
+  jobs:
+    - job: terraformApply
+      displayName: Terraform Apply Job
+      steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+            backendServiceArm: 'rakshak-svc'
+            backendAzureRmStorageAccountName: 'rakshakstg1'
+            backendAzureRmContainerName: 'tfstate'
+            backendAzureRmKey: 'dev.terraform.tfstate'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+            environmentServiceNameAzureRM: 'rakshak-svc'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# resources:
+#  repositories:
+#  # we will give here repo name 
+#    - repository: templates
+#      type: github
+#      name: tripathicle/templates
+#  # we will give the svc name here
+#      endpoint: pat-github-svc-pipeline
+#      ref: refs/heads/main
+
+
+
+
+# trigger:
+#  branches:
+#    include:
+     
+#      - dev
+
+# stages:
+#   - stage: terraforminit
+#     displayName: terraform stage init
+#     pool: Rakshak Pipelines
+#     jobs:
+#     # - template: templates/terraform-init-jobs.yml
+#     # this templates calling from diffrent repo
+#     # path - file name and repo name
+#       - template: templates/jobinit.yml@templates
+#         parameters:
+#           workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+#           serviceConnection: 'rakshak-svc'
+#           storageAccount: 'rakshakstg1'
+#           containerName: 'tfstate'
+#           tfstateKey: 'dev.terraform.tfstate'
+        
+#   # 🔹 VALIDATE
+#   - stage: Validate
+#     dependsOn: Init
+#     jobs:
+#     - template: templates/jobvalidate.yml@templates
+#       parameters:
+#         workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+
+#   - stage: Plan
+#     dependsOn: Validate
+#     jobs:
+#     - template: templates/terraform-plan.yml@templates
+#       parameters:
+#         workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+#           serviceConnection: 'rakshak-svc'
+#           storageAccount: 'rakshakstg1'
+#           containerName: 'tfstate'
+#           tfstateKey: 'dev.terraform.tfstate'
+       
       
 
-  - stage: terraformvalidate
-    displayName: terraform stage validate
-    dependsOn: terraforminit
-    pool: Rakshak Pipelines
-    jobs:
-      - job: terraformvalidate
-        displayName: terraformstagevalidate
-        steps:
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
-              backendServiceArm: 'rakshak-svc'
-              backendAzureRmStorageAccountName: 'rakshakstg1'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'dev.terraform.tfstate'
+      
+      
+      
+       
+      
+         
 
-  - stage: terraformPlan
-    displayName: terraform stage Plan
-    dependsOn: terraformvalidate
-    pool: Rakshak Pipelines
-    jobs:
-      - job: terraformPlan
-        displayName: terraform stage plan
-        steps:
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
-              backendServiceArm: 'rakshak-svc'
-              backendAzureRmStorageAccountName: 'rakshakstg1'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'dev.terraform.tfstate'            
+
+
+
+
+
+
+
+
+#         # steps:
+#         #   - task: TerraformTask@5
+#         #     inputs:
+#         #       provider: 'azurerm'
+#         #       command: 'init'
+#         #       workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+#         #       backendServiceArm: 'rakshak-svc'
+#         #       backendAzureRmStorageAccountName: 'rakshakstg1'
+#         #       backendAzureRmContainerName: 'tfstate'
+#         #       backendAzureRmKey: 'dev.terraform.tfstate'            
           
           
-  - stage: terraformApply
-    displayName: terraform stage apply
-    dependsOn: terraformPlan
-    pool: Rakshak Pipelines
-    jobs:
-      - job: terraformPlan
-        displayName: terraform stage Apply
-        steps:
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
-              backendServiceArm: 'rakshak-svc'
-              backendAzureRmStorageAccountName: 'rakshakstg1'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'dev.terraform.tfstate'            
+#   - stage: terraformApply
+#     displayName: terraform stage apply
+#     dependsOn: terraformPlan
+#     pool: Rakshak Pipelines
+#     jobs:
+#       - job: terraformPlan
+#         displayName: terraform stage Apply
+#         steps:
+#           - task: TerraformTask@5
+#             inputs:
+#               provider: 'azurerm'
+#               command: 'init'
+#               workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+#               backendServiceArm: 'rakshak-svc'
+#               backendAzureRmStorageAccountName: 'rakshakstg1'
+#               backendAzureRmContainerName: 'tfstate'
+#               backendAzureRmKey: 'dev.terraform.tfstate'            
           
 
 
