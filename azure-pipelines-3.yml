@@ -128,7 +128,7 @@ stages:
 # 🔹 VALIDATE STAGE
 - stage: Validate
   displayName: Terraform Validate Stage
-  dependsOn: Init   # ✅ FIXED (stage name match)
+  dependsOn: Init   
   pool: Rakshak Pipelines
   jobs:
     - template: templates/jobvalidate.yml@templates
@@ -152,7 +152,7 @@ stages:
 # 🔹 APPLY STAGE
 - stage: Apply
   displayName: Terraform Apply Stage
-  dependsOn: Plan   # ✅ FIXED
+  dependsOn: Plan  
   pool: Rakshak Pipelines
   jobs:
     - job: terraformApply
