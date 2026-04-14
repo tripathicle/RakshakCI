@@ -11,32 +11,44 @@ trigger:
     include:
       - dev
 
+# CENTRALIZED VARIABLES (NO HARDCODING)
+variables:
+  workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  serviceConnection: 'rakshak-svc'
+  storageAccount: 'rakshakstg1'
+  containerName: 'tfstate'
+  tfstateKey: 'dev.terraform.tfstate'
+
 stages:
 
-# 🔹 INIT STAGE
+#  INIT STAGE
 - stage: Init
   displayName: Terraform Init Stage
   pool: Rakshak Pipelines
   jobs:
     - template: templates/jobinit.yml@templates
       parameters:
-        workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
-        serviceConnection: 'rakshak-svc'
-        storageAccount: 'rakshakstg1'
-        containerName: 'tfstate'
-        tfstateKey: 'dev.terraform.tfstate'
+        workingDir: $(workingDir)
+        serviceConnection: $(serviceConnection)
+        storageAccount: $(storageAccount)
+        containerName: $(containerName)
+        tfstateKey: $(tfstateKey)
 
-# 🔹 VALIDATE STAGE
+#  VALIDATE STAGE
 - stage: Validate
   displayName: Terraform Validate Stage
-  dependsOn: Init   
+  dependsOn: Init
   pool: Rakshak Pipelines
   jobs:
     - template: templates/jobvalidate.yml@templates
       parameters:
-        workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+        workingDir: $(workingDir)
+        serviceConnection: $(serviceConnection)
+        storageAccount: $(storageAccount)
+        containerName: $(containerName)
+        tfstateKey: $(tfstateKey)
 
-# 🔹 PLAN STAGE
+#  PLAN STAGE
 - stage: Plan
   displayName: Terraform Plan Stage
   dependsOn: Validate
@@ -44,34 +56,36 @@ stages:
   jobs:
     - template: templates/jobplan.yml@templates
       parameters:
-        workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
-        serviceConnection: 'rakshak-svc'
-        storageAccount: 'rakshakstg1'
-        containerName: 'tfstate'
-        tfstateKey: 'dev.terraform.tfstate'
+        workingDir: $(workingDir)
+        serviceConnection: $(serviceConnection)
+        storageAccount: $(storageAccount)
+        containerName: $(containerName)
+        tfstateKey: $(tfstateKey)
 
-# 🔹 APPLY STAGE
+#  APPLY STAGE
 - stage: Apply
   displayName: Terraform Apply Stage
-  dependsOn: Plan  
+  dependsOn: Plan
   pool: Rakshak Pipelines
   jobs:
     - job: terraformApply
       displayName: Terraform Apply Job
       steps:
         - task: TerraformTask@5
+          displayName: Terraform Init
           inputs:
             provider: 'azurerm'
             command: 'init'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
-            backendServiceArm: 'rakshak-svc'
-            backendAzureRmStorageAccountName: 'rakshakstg1'
-            backendAzureRmContainerName: 'tfstate'
-            backendAzureRmKey: 'dev.terraform.tfstate'
+            workingDirectory: $(workingDir)
+            backendServiceArm: $(serviceConnection)
+            backendAzureRmStorageAccountName: $(storageAccount)
+            backendAzureRmContainerName: $(containerName)
+            backendAzureRmKey: $(tfstateKey)
 
         - task: TerraformTask@5
+          displayName: Terraform Apply
           inputs:
             provider: 'azurerm'
             command: 'apply'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
-            environmentServiceNameAzureRM: 'rakshak-svc'
+            workingDirectory: $(workingDir)
+            environmentServiceNameAzureRM: $(serviceConnection)
