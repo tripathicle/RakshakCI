@@ -97,10 +97,7 @@
           
 
 
-    
-
-
-    resources:
+resources:
   repositories:
     - repository: templates
       type: github
@@ -134,7 +131,7 @@ stages:
   dependsOn: Init   # ✅ FIXED (stage name match)
   pool: Rakshak Pipelines
   jobs:
-    - template: templates/terraform-validate.yml@templates
+    - template: templates/jobvalidate.yml@templates
       parameters:
         workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
 
@@ -144,7 +141,7 @@ stages:
   dependsOn: Validate
   pool: Rakshak Pipelines
   jobs:
-    - template: templates/terraform-plan.yml@templates
+    - template: templates/jobplan.yml@templates
       parameters:
         workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
         serviceConnection: 'rakshak-svc'
