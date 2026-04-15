@@ -39,11 +39,11 @@ stages:
     jobs:
       - template: templates/jobinit.yml@templates
         parameters:
-          workingDir: $(workingDir)
+          workingDir: '$(System.DefaultWorkingDirectory)/Environment/${{parameters.environment}}'
           serviceConnection: $(serviceConnection)
           storageAccount: $(storageAccount)
           containerName: $(containerName)
-          tfstateKey: $(tfstateKey)
+          tfstateKey: '${{ parameters.environment }}.terraform.tfstate'
         
   - stage: VALIDATE
     displayName: terraform validate
@@ -68,17 +68,17 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: $(workingDir)
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/${{parameters.environment}}'
               backendServiceArm: $(serviceConnection)
               backendAzureRmStorageAccountName: $(storageAccount)
               backendAzureRmContainerName: $(containerName)
-              backendAzureRmKey: $(tfstateKey)
+              backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
 
           - task: TerraformTask@5
             inputs:
               provider: 'azurerm'
               command: 'validate'
-              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+              workingDirectory: '${{ parameters.environment }}.terraform.tfstate'
         
 
 
