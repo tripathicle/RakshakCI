@@ -1,6 +1,6 @@
 # in this pipeline we are calling init from using templates and its associated variables and hardcoded variables
 parameters:
-  - name: Environment
+  - name: environment
     displayName: Enter Your Environment name 
     type: string
     default: dev
@@ -25,11 +25,12 @@ resources:
 # declaring variables for resuability
 
 variables:
-  workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  workingDir: '$(System.DefaultWorkingDirectory)/Environment/${{parameters.environment}}'
   serviceConnection: 'rakshak-svc'
   storageAccount: 'rakshakstg1'
   containerName: 'tfstate'
-  tfstateKey: 'dev.terraform.tfstate'
+  #tfstateKey: 'dev.terraform.tfstate'
+  tfstateKey: '${{ parameters.environment }}.terraform.tfstate'
 
 stages:
   - stage: INIT
