@@ -79,10 +79,44 @@ stages:
               provider: 'azurerm'
               command: 'validate'
               workingDirectory: '${{ parameters.environment }}.terraform.tfstate'
+
+
+  - stage: PLAN
+    displayName: terraform Plan
+    pool: Rakshak Pipelines
+    dependsOn: VALIDATE
+    jobs:
+      - job: terraformvalidate
+        displayName: terraform Plan
+        steps:
+         - task: TerraformTask@5
+           inputs:
+             provider: 'azurerm'
+             command: 'plan'
+             workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/${{parameters.environment}}'
+             environmentServiceNameAzureRM: 'rakshak-svc'
+
+
+  - stage: Apply
+    displayName: terraform Apply
+    pool: Rakshak Pipelines
+    dependsOn: PLAN
+    jobs:
+      - job: terraformApply
+        displayName: terraform Apply
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/${{parameters.environment}}'
+              environmentServiceNameAzureRM: 'rakshak-svc'
         
 
 
-        
+  
+
+         
 
       
         
