@@ -78,7 +78,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'validate'
-              workingDirectory: '${{ parameters.environment }}.terraform.tfstate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/${{parameters.environment}}'
 
 
   - stage: PLAN
