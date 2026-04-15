@@ -1,7 +1,7 @@
 # in this pipeline we are calling init from using templates and its associated variables and hardcoded variables
 parameters:
   - name: Environment
-    displayName: PARAMETER
+    displayName: Enter Your Branch name 
     type: string
     default: dev
     values:
