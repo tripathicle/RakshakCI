@@ -38,9 +38,9 @@ stages:
     displayName: terraform validate
     pool: Rakshak Pipelines
     jobs:
-      - job: terraform-validate
+      - job: terraformvalidate
         displayName: terraform validate
-        dependsOn: INIT
+        #dependsOn: INIT
         steps:
           - task: TerraformTask@5
             inputs:
