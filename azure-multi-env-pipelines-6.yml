@@ -1,0 +1,81 @@
+# in this pipeline we are calling init from using templates and its associated variables and hardcoded variables
+
+trigger: 
+ branches:
+  include:
+    - dev
+resources:
+ repositories:
+   - repository: templates
+     name: tripathicle/templates
+     type: github
+     endpoint: pat-github-svc-pipeline
+     ref: refs/heads/main
+
+# declaring variables for resuability
+
+variables:
+  workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  serviceConnection: 'rakshak-svc'
+  storageAccount: 'rakshakstg1'
+  containerName: 'tfstate'
+  tfstateKey: 'dev.terraform.tfstate'
+
+stages:
+  - stage: INIT
+    displayName: Terraform init
+    pool: Rakshak Pipelines
+    jobs:
+      - template: templates/jobinit.yml@templates
+        parameters:
+          workingDir: $(workingDir)
+          serviceConnection: $(serviceConnection)
+          storageAccount: $(storageAccount)
+          containerName: $(containerName)
+          tfstateKey: $(tfstateKey)
+        
+  - stage: VALIDATE
+    displayName: terraform validate
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraformvalidate
+        displayName: terraform validate
+        #dependsOn: INIT
+        steps:
+
+          # - task: TerraformTask@5
+          #   inputs:
+          #     provider: 'azurerm'
+          #     command: 'init'
+          #     workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          #     backendServiceArm: 'rakshak-svc'
+          #     backendAzureRmStorageAccountName: 'rakshakstg1'
+          #     backendAzureRmContainerName: 'tfstate'
+          #     backendAzureRmKey: 'dev.terraform.tfstate'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: $(workingDir)
+              backendServiceArm: $(serviceConnection)
+              backendAzureRmStorageAccountName: $(storageAccount)
+              backendAzureRmContainerName: $(containerName)
+              backendAzureRmKey: $(tfstateKey)
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+        
+
+
+        
+
+      
+        
+
+
+   
+
