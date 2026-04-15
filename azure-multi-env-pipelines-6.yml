@@ -1,4 +1,14 @@
 # in this pipeline we are calling init from using templates and its associated variables and hardcoded variables
+parameters:
+  - name: Environment
+    displayName: PARAMETER
+    type: string
+    default: dev
+    values:
+      - dev
+      - stage
+      - prod
+
 
 trigger: 
  branches:
