@@ -32,9 +32,9 @@ variables:
 
   - name: select_svc_name
     ${{if eq(parameters.environment, 'dev')}}:
-    value: rakshak-svc
-    {{else}}:
-    value: rakshak-svc
+      value: rakshak-svc
+    ${{ else }}:
+      value: rakshak-svc
 
   - name: dev_storageAccount
     value: rakshakstg1
@@ -43,10 +43,10 @@ variables:
     value: rakshakstg1
 
   - name: select_storageAccount
-    ${{if eq (parameters.environment, 'dev')}}:
-    value: rakshakstg1
-    {{else}}:
-    value: rakshakstg1
+    ${{ if eq(parameters.environment, 'dev') }}:
+      value: rakshakstg1
+    ${{ else }}:
+      value: rakshakstg1
 
   - name: dev_Container_name
     value: tfstate
@@ -54,10 +54,10 @@ variables:
     value: tfstate
 
   - name: select_Container
-    ${{if eq (parameters.environment , 'dev')}}:
-    value: tfstate
-    {{else}}:
-    value : tfstate
+    ${{ if eq(parameters.environment , 'dev') }}:
+      value: tfstate
+    ${{ else }}:
+      value : tfstate
 
   - name: dev_tfstateKey
     value: tfstateKey
@@ -65,10 +65,10 @@ variables:
     value: tfstateKey
 
   - name: select_tfstateKey
-    $ {{if eq (parameters.envrionment, 'dev')}}:
-    value: tfstateKey
-    {{else}}:
-    value : tfstateKey
+    ${{ if eq(parameters.environment , 'dev')}}:
+      value: tfstateKey
+    ${{ else }}:
+      value : tfstateKey
 
 
 stages:
@@ -83,7 +83,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\{{parameters.environment}}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
               backendServiceArm: '$(select_svc_name)'
               backendAzureRmStorageAccountName: '$(select_storageAccount)'
               backendAzureRmContainerName: '$(select_Container)'
