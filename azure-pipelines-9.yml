@@ -138,6 +138,35 @@ stages:
               workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
               environmentServiceNameAzureRM: '$(select_svc_name)'
 
+  - stage: terraformApply
+    displayName: terraformApply
+    dependsOn: TerraformPlan
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraformApply
+        displayName: terraformApply
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              backendServiceArm: '$(select_svc_name)'
+              backendAzureRmStorageAccountName: '$(select_storageAccount)'
+              backendAzureRmContainerName: '$(select_Container)'
+              backendAzureRmKey: '$(select_tfstateKey)'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              environmentServiceNameAzureRM: '$(select_svc_name)'
+
+        
+
+
+
         
 
           
