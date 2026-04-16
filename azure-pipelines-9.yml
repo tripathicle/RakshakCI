@@ -10,10 +10,10 @@ parameters:
       - prod
 
 
-trigger: 
- branches:
-  include:
-    - dev
+trigger: none
+#  branches:
+#   include:
+#     - dev
 resources:
  repositories:
    - repository: templates
