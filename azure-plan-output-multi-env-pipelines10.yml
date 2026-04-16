@@ -1,0 +1,179 @@
+# multi env switch logic 
+parameters:
+  - name: environment
+    displayName: Enter Your Environment name 
+    type: string
+    default: dev
+    values:
+      - dev
+      - stage
+      - prod
+
+
+trigger: none
+#  branches:
+#   include:
+#     - dev
+resources:
+ repositories:
+   - repository: templates
+     name: tripathicle/templates
+     type: github
+     endpoint: pat-github-svc-pipeline
+     ref: refs/heads/main
+
+variables:
+  
+  - name: dev_svc_name
+    value: rakshak-svc
+  
+  - name: prod_svc_name
+    value: rakshak-svc
+
+  - name: select_svc_name
+    ${{if eq(parameters.environment, 'dev')}}:
+      value: rakshak-svc
+    ${{ else }}:
+      value: rakshak-svc
+
+  - name: dev_storageAccount
+    value: rakshakstg1
+
+  - name: prod_storageAccount
+    value: rakshakstg1
+
+  - name: select_storageAccount
+    ${{ if eq(parameters.environment, 'dev') }}:
+      value: rakshakstg1
+    ${{ else }}:
+      value: rakshakstg1
+
+  - name: dev_Container_name
+    value: tfstate
+  - name: prod_Container_name
+    value: tfstate
+
+  - name: select_Container
+    ${{ if eq(parameters.environment , 'dev') }}:
+      value: tfstate
+    ${{ else }}:
+      value : tfstate
+
+  - name: dev_tfstateKey
+    value: tfstateKey
+  - name: prod_tfstateKey
+    value: tfstateKey
+
+  - name: select_tfstateKey
+    ${{ if eq(parameters.environment , 'dev')}}:
+      value: tfstateKey
+    ${{ else }}:
+      value : tfstateKey
+
+
+stages:
+  - stage: Terraforminit
+    displayName: init stage
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraforminit
+        displayName: terraformINIT
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              backendServiceArm: '$(select_svc_name)'
+              backendAzureRmStorageAccountName: '$(select_storageAccount)'
+              backendAzureRmContainerName: '$(select_Container)'
+              backendAzureRmKey: '$(select_tfstateKey)'
+
+
+  - stage: TerraformValidate
+    displayName: terraform validate
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraformValidate
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              backendServiceArm: '$(select_svc_name)'
+              backendAzureRmStorageAccountName: '$(select_storageAccount)'
+              backendAzureRmContainerName: '$(select_Container)'
+              backendAzureRmKey: '$(select_tfstateKey)'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+
+
+  - stage: TerraformPlan
+    displayName: terraform Plan 
+    pool: Rakshak Pipelines
+    dependsOn: TerraformValidate
+    jobs:
+      - job: terraformPlan
+        displayName: terraformPlan
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              backendServiceArm: '$(select_svc_name)'
+              backendAzureRmStorageAccountName: '$(select_storageAccount)'
+              backendAzureRmContainerName: '$(select_Container)'
+              backendAzureRmKey: '$(select_tfstateKey)'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              environmentServiceNameAzureRM: '$(select_svc_name)'
+
+  - stage: terraformApply
+    displayName: terraformApply
+    dependsOn: TerraformPlan
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraformApply
+        displayName: terraformApply
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              backendServiceArm: '$(select_svc_name)'
+              backendAzureRmStorageAccountName: '$(select_storageAccount)'
+              backendAzureRmContainerName: '$(select_Container)'
+              backendAzureRmKey: '$(select_tfstateKey)'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
+              environmentServiceNameAzureRM: '$(select_svc_name)'
+
+        
+
+
+
+        
+
+          
+
+ 
+
+  
+    
+
+  
