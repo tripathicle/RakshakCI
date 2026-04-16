@@ -137,6 +137,9 @@ stages:
               command: 'plan'
               workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}'
               environmentServiceNameAzureRM: '$(select_svc_name)'
+              # output plan generate
+              commandOptions: '-out=tfplan.binary'
+              
           # to publish the plan output 
 
           - publish: '$(System.DefaultWorkingDirectory)\Environment\${{parameters.environment}}\tfplan.binary'
