@@ -60,9 +60,9 @@ variables:
       value : tfstate
 
   - name: dev_tfstateKey
-    value: tfstateKey
+    value: dev.terraform.tfstate
   - name: prod_tfstateKey
-    value: tfstateKey
+    value: dev.terraform.tfstate
 
   - name: select_tfstateKey
     ${{ if eq(parameters.environment , 'dev')}}:
