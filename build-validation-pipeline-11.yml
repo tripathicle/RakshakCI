@@ -30,7 +30,7 @@ jobs:
   - job: TerraformPlan
     displayName: terraformPlan
     dependsOn: TerraformInit
-    condition: succeeded()
+    
     steps:
       # we all know that before we must init the terraform 
       # so at this step we will download the artifacts
