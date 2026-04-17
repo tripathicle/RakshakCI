@@ -45,7 +45,7 @@ jobs:
         inputs:
           targetType: 'inline'
           script: |
-            cd $(Pipeline.Workspace)\Environment\Dev
+            cd $(Pipeline.Workspace)/tf-config/Environment/Dev
             chmod -R +x .terraform/providers
         
       - task: TerraformTask@5
