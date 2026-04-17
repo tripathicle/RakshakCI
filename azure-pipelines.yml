@@ -1,8 +1,8 @@
-trigger:
- branches:
-   include:
+trigger: none
+#  branches:
+#    include:
      
-     - dev
+#      - dev
 
 stages:
   - stage: terraforminit
