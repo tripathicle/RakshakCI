@@ -13,7 +13,7 @@ jobs:
         inputs:
           provider: 'azurerm'
           command: 'init'
-          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
           backendServiceArm: 'rakshak-svc'
           backendAzureRmStorageAccountName: 'rakshakstg1'
           backendAzureRmContainerName: 'tfstate'
@@ -23,7 +23,7 @@ jobs:
       # and .hcl.log file in artifact for consistency 
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+          targetPath: '$(System.DefaultWorkingDirectory)/Environment/Dev'
           artifact: 'tf-config'
           publishLocation: 'pipeline'
 
@@ -41,6 +41,21 @@ jobs:
           buildType: 'current'
           artifactName: 'tf-config'
           targetPath: '$(Pipeline.Workspace)'
+
+      
+      - task: TerraformInstaller@1
+        displayName: Install Terraform
+        inputs:
+          terraformVersion: 'latest'
+
+
+       # Debug 
+      - task: CmdLine@2
+        displayName: Verify Artifact
+        inputs:
+          script: |
+            dir $(Pipeline.Workspace)\tf-config
+
       
         
       - task: TerraformTask@5
