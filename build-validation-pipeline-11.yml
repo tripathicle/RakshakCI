@@ -1,0 +1,60 @@
+# build valiidation pipeline 
+# publishing the artifacts 
+
+trigger: none 
+pool: Rakshak Pipelines
+stages:
+  - stage: TerraformInit
+    jobs:
+      - job:
+        displayName: TerraformInt
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+              backendServiceArm: 'rakshak-svc'
+              backendAzureRmStorageAccountName: 'rakshakstg1'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'dev.terraform.tfstate'
+
+          # publishing artifacts to store .terraform folder provider schema
+          # and .hcl.log file in artifact for consistency 
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              # this target path publishing the artifacts 
+              targetPath: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+              artifact: 'tf-config'
+              # that generated artifact will store in pipeline workspace
+              publishLocation: 'pipeline'
+
+
+  - stage: TerraformPlan
+    jobs:
+      - job: TerraformPlan
+        displayName: terraformPlan
+        dependsOn: TerraformInit
+        condition: succeeded()
+        steps:
+          # we all know that before we must init the terrafrom 
+          # so at this step we will download the artifcats
+          # then plan 
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'tf-config'
+              targetPath: '$(Pipeline.Workspace)'
+
+
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+              environmentServiceNameAzureRM: 'rakshak-svc'
+          
+            
+
