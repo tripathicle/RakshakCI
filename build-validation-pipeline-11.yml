@@ -46,5 +46,8 @@ jobs:
         inputs:
           provider: 'azurerm'
           command: 'plan'
-          workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+
+          # yah workspace agent ka workspace hai
+          # hume init pipeline ke workspace me chalana hai 
+          workingDirectory: '$(Pipeline.Workspace)'
           environmentServiceNameAzureRM: 'rakshak-svc'
