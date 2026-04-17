@@ -41,16 +41,7 @@ jobs:
           buildType: 'current'
           artifactName: 'tf-config'
           targetPath: '$(Pipeline.Workspace)'
-      - task: Bash@3
-        inputs:
-          targetType: 'inline'
-          script: |
-            ls
-            pwd
-            cd $(Pipeline.Workspace)/tf-config/Environment/Dev
-            ls 
-            pwd
-            chmod -R +x .terraform/
+      
         
       - task: TerraformTask@5
         inputs:
