@@ -36,6 +36,12 @@ jobs:
       # so at this step we will download the artifacts
       # then plan 
 
+      
+      - task: TerraformInstaller@1   # 🔥 MUST
+        displayName: Install Terraform
+        inputs:
+          terraformVersion: 'latest'
+
       - task: DownloadPipelineArtifact@2
         inputs:
           buildType: 'current'
@@ -43,10 +49,7 @@ jobs:
           targetPath: '$(Pipeline.Workspace)'
 
       
-      # - task: TerraformInstaller@1
-      #   displayName: Install Terraform
-      #   inputs:
-      #     terraformVersion: 'latest'
+      
 
 
       #  # Debug 
@@ -65,5 +68,5 @@ jobs:
 
           # yah workspace agent ka workspace hai
           # hume init pipeline ke workspace me chalana hai 
-          workingDirectory: '$(Pipeline.Workspace)\tf-config'
+          workingDirectory: '$(Pipeline.Workspace)/tf-config'
           environmentServiceNameAzureRM: 'rakshak-svc'
