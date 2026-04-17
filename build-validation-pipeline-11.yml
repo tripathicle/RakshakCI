@@ -37,10 +37,10 @@ jobs:
       # then plan 
 
       
-      - task: TerraformInstaller@1   # 🔥 MUST
-        displayName: Install Terraform
-        inputs:
-          terraformVersion: 'latest'
+      # - task: TerraformInstaller@1   # 🔥 MUST
+      #   displayName: Install Terraform
+      #   inputs:
+      #     terraformVersion: 'latest'
 
       - task: DownloadPipelineArtifact@2
         inputs:
