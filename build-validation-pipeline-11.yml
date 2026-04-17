@@ -46,7 +46,7 @@ jobs:
           targetType: 'inline'
           script: |
             cd $(Pipeline.Workspace)/tf-config/Environment/Dev
-            chmod -R +x .terraform/providers
+            chmod -R +x .terraform/
         
       - task: TerraformTask@5
         inputs:
@@ -55,5 +55,5 @@ jobs:
 
           # yah workspace agent ka workspace hai
           # hume init pipeline ke workspace me chalana hai 
-          workingDirectory: '$(Pipeline.Workspace)'
+          workingDirectory: '$(Pipeline.Workspace)/tf-config'
           environmentServiceNameAzureRM: 'rakshak-svc'
