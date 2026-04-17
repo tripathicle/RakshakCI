@@ -49,12 +49,12 @@ jobs:
           terraformVersion: 'latest'
 
 
-       # Debug 
-      - task: CmdLine@2
-        displayName: Verify Artifact
-        inputs:
-          script: |
-            dir $(Pipeline.Workspace)\tf-config
+      #  # Debug 
+      # - task: CmdLine@2
+      #   displayName: Verify Artifact
+      #   inputs:
+      #     script: |
+      #       dir $(Pipeline.Workspace)\tf-config
 
       
         
