@@ -65,5 +65,5 @@ jobs:
 
           # yah workspace agent ka workspace hai
           # hume init pipeline ke workspace me chalana hai 
-          workingDirectory: '$(Pipeline.Workspace)'
+          workingDirectory: '$(Pipeline.Workspace)\tf-config'
           environmentServiceNameAzureRM: 'rakshak-svc'
