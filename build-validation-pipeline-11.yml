@@ -41,7 +41,13 @@ jobs:
           buildType: 'current'
           artifactName: 'tf-config'
           targetPath: '$(Pipeline.Workspace)'
-
+      - task: Bash@3
+        inputs:
+          targetType: 'inline'
+          script: |
+            cd $(Pipeline.Workspace)\Environment\Dev
+            chmod -R +x .terraform/providers
+        
       - task: TerraformTask@5
         inputs:
           provider: 'azurerm'
