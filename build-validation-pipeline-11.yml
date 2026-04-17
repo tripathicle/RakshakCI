@@ -43,10 +43,10 @@ jobs:
           targetPath: '$(Pipeline.Workspace)'
 
       
-      - task: TerraformInstaller@1
-        displayName: Install Terraform
-        inputs:
-          terraformVersion: 'latest'
+      # - task: TerraformInstaller@1
+      #   displayName: Install Terraform
+      #   inputs:
+      #     terraformVersion: 'latest'
 
 
       #  # Debug 
@@ -65,5 +65,5 @@ jobs:
 
           # yah workspace agent ka workspace hai
           # hume init pipeline ke workspace me chalana hai 
-          workingDirectory: '$(Pipeline.Workspace)/tf-config'
+          workingDirectory: '$(Pipeline.Workspace)'
           environmentServiceNameAzureRM: 'rakshak-svc'
