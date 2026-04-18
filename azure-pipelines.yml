@@ -1,16 +1,16 @@
-trigger:
- branches:
-   include:
+trigger: none
+#  branches:
+#    include:
      
-     - dev
+#      - dev
 
 stages:
   - stage: terraforminit
-    displayName: terraform init
+    displayName: terraform stage init
     pool: Rakshak Pipelines
     jobs:
-      - job: 
-        displayName: terraforminit
+      - job: terraforminit
+        displayName: terraformjoninit
         steps:
           - task: TerraformTask@5
             inputs:
@@ -23,12 +23,12 @@ stages:
               backendAzureRmKey: 'dev.terraform.tfstate'
 
   - stage: terraformvalidate
-    displayName: terraform validate
-    dependsOn:  terraforminit
+    displayName: terraform stage validate
+    dependsOn: terraforminit
     pool: Rakshak Pipelines
     jobs:
-      - job: 
-        displayName: terraformvalidate
+      - job: terraformvalidate
+        displayName: terraformstagevalidate
         steps:
           - task: TerraformTask@5
             inputs:
@@ -40,13 +40,13 @@ stages:
               backendAzureRmContainerName: 'tfstate'
               backendAzureRmKey: 'dev.terraform.tfstate'
 
-  - stage: terraformvalidate
-    displayName: terraform plan
-    dependsOn:  terraformvalidate
+  - stage: terraformPlan
+    displayName: terraform stage Plan
+    dependsOn: terraformvalidate
     pool: Rakshak Pipelines
     jobs:
-      - job: 
-        displayName: terraformvalidate
+      - job: terraformPlan
+        displayName: terraform stage plan
         steps:
           - task: TerraformTask@5
             inputs:
@@ -56,16 +56,27 @@ stages:
               backendServiceArm: 'rakshak-svc'
               backendAzureRmStorageAccountName: 'rakshakstg1'
               backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'dev.terraform.tfstate'
-
-
-
-
-         
-    
-    
-    
-  
+              backendAzureRmKey: 'dev.terraform.tfstate'            
+          
+          
+  - stage: terraformApply
+    displayName: terraform stage apply
+    dependsOn: terraformPlan
+    pool: Rakshak Pipelines
+    jobs:
+      - job: terraformPlan
+        displayName: terraform stage Apply
+        steps:
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)\Environment\Dev'
+              backendServiceArm: 'rakshak-svc'
+              backendAzureRmStorageAccountName: 'rakshakstg1'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'dev.terraform.tfstate'            
           
 
 
+    

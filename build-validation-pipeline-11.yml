@@ -1,0 +1,72 @@
+# build validation pipeline 
+# publishing the artifacts 
+
+trigger: none 
+
+pool: Rakshak Pipelines
+
+jobs:
+  - job: TerraformInit
+    displayName: TerraformInt
+    steps:
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+          backendServiceArm: 'rakshak-svc'
+          backendAzureRmStorageAccountName: 'rakshakstg1'
+          backendAzureRmContainerName: 'tfstate'
+          backendAzureRmKey: 'dev.terraform.tfstate'
+
+      # publishing artifacts to store .terraform folder provider schema
+      # and .hcl.log file in artifact for consistency 
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+          artifact: 'tf-config'
+          publishLocation: 'pipeline'
+
+  - job: TerraformPlan
+    displayName: terraformPlan
+    dependsOn: TerraformInit
+    
+    steps:
+      # we all know that before we must init the terraform 
+      # so at this step we will download the artifacts
+      # then plan 
+
+      
+      # - task: TerraformInstaller@1   # 🔥 MUST
+      #   displayName: Install Terraform
+      #   inputs:
+      #     terraformVersion: 'latest'
+
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'current'
+          artifactName: 'tf-config'
+          targetPath: '$(Pipeline.Workspace)'
+
+      
+      
+
+
+      #  # Debug 
+      # - task: CmdLine@2
+      #   displayName: Verify Artifact
+      #   inputs:
+      #     script: |
+      #       dir $(Pipeline.Workspace)\tf-config
+
+      
+        
+      - task: TerraformTask@5
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+
+          # yah workspace agent ka workspace hai
+          # hume init pipeline ke workspace me chalana hai 
+          workingDirectory: '$(Pipeline.Workspace)/tf-config'
+          environmentServiceNameAzureRM: 'rakshak-svc'
