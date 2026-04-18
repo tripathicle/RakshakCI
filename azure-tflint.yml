@@ -2,7 +2,7 @@ trigger: none
 pool: Rakshak Pipelines
 
 jobs:
-  - job: terraform tflint
+  - job: terraformtflint
     displayName: terraform tflint integration
     steps:
       - checkout: self
@@ -25,7 +25,7 @@ jobs:
 
   - job: tflint 
     displayName: tflint 
-    dependsOn: terraformValidate
+    #dependsOn: terraformValidate
     steps:
       - checkout: self
       - script: |
