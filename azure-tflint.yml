@@ -25,7 +25,7 @@ jobs:
 
   - job: tflint 
     displayName: tflint 
-    #dependsOn: terraformValidate
+    dependsOn: terraformtflint
     steps:
       - checkout: self
       - script: |
