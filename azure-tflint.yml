@@ -33,7 +33,7 @@ jobs:
         displayName: tflint init
 
       - script: |
-          tflint ./Environment/Dev
+          tflint --chdir=Environment/Dev
         displayName: 'Run TFLint'
       
       
