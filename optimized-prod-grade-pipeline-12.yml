@@ -1,0 +1,139 @@
+trigger: none
+
+pool: Rakshak Pipelines
+
+variables:
+  workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  serviceConnection: 'rakshak-svc'
+  backendRG: 'rakshakstg1'
+  backendContainer: 'tfstate'
+  backendKey: 'dev.terraform.tfstate'
+
+stages:
+
+# -------------------------------
+# STAGE 1: INIT + VALIDATE + LINT + SCAN
+# -------------------------------
+- stage: ValidateAndScan
+  displayName: "Validate, Lint & Security Scan"
+  jobs:
+    - job: validation
+      steps:
+        - checkout: self
+
+        # Terraform Init
+        - task: TerraformTask@5
+          displayName: Terraform Init
+          inputs:
+            provider: azurerm
+            command: init
+            workingDirectory: $(workingDir)
+            backendServiceArm: $(serviceConnection)
+            backendAzureRmStorageAccountName: $(backendRG)
+            backendAzureRmContainerName: $(backendContainer)
+            backendAzureRmKey: $(backendKey)
+
+        # Validate
+        - task: TerraformTask@5
+          displayName: Terraform Validate
+          inputs:
+            provider: azurerm
+            command: validate
+            workingDirectory: $(workingDir)
+
+        # TFLint
+        - script: |
+            tflint --init
+            tflint --chdir=$(workingDir)
+          displayName: TFLint
+
+        # Checkov
+        - script: |
+            pip install checkov
+            checkov -d $(workingDir)
+          displayName: Checkov Scan
+
+        # tfsec
+        - script: |
+            curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+            tfsec $(workingDir)
+          displayName: tfsec Scan
+
+        # Terrascan
+        - script: |
+            curl -L https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64.tar.gz | tar -xz
+            sudo install terrascan /usr/local/bin
+            terrascan scan -i terraform -d $(workingDir)
+          displayName: Terrascan
+
+
+# -------------------------------
+# STAGE 2: PLAN (Artifact Store)
+# -------------------------------
+- stage: Plan
+  displayName: "Terraform Plan"
+  dependsOn: ValidateAndScan
+  jobs:
+    - job: terraform_plan
+      steps:
+        - checkout: self
+
+        - task: TerraformTask@5
+          displayName: Terraform Plan
+          inputs:
+            provider: azurerm
+            command: plan
+            workingDirectory: $(workingDir)
+            environmentServiceNameAzureRM: $(serviceConnection)
+            commandOptions: "-out=tfplan"
+
+        # Save Plan as Artifact 🔥
+        - task: PublishBuildArtifacts@1
+          inputs:
+            pathToPublish: '$(workingDir)/tfplan'
+            artifactName: 'terraformPlan'
+
+
+# -------------------------------
+# STAGE 3: MANUAL APPROVAL
+# -------------------------------
+- stage: Approval
+  displayName: "Manual Approval"
+  dependsOn: Plan
+  jobs:
+    - job: wait_for_approval
+      pool: server
+      steps:
+        - task: ManualValidation@0
+          inputs:
+            instructions: "Approve Terraform Apply"
+            notifyUsers: 'sktripathiinfo@gmail.com'
+            timeout: '1d'
+
+
+# -------------------------------
+# STAGE 4: APPLY (Using Saved Plan)
+# -------------------------------
+- stage: Apply
+  displayName: "Terraform Apply"
+  dependsOn: Approval
+  condition: succeeded()
+  jobs:
+    - job: terraform_apply
+      steps:
+        - checkout: self
+
+        # Download Plan Artifact
+        - task: DownloadBuildArtifacts@0
+          inputs:
+            artifactName: 'terraformPlan'
+            downloadPath: '$(workingDir)'
+
+        - task: TerraformTask@5
+          displayName: Terraform Apply
+          inputs:
+            provider: azurerm
+            command: apply
+            workingDirectory: $(workingDir)
+            environmentServiceNameAzureRM: $(serviceConnection)
+            commandOptions: "tfplan"
