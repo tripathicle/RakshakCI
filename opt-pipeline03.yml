@@ -1,0 +1,314 @@
+trigger: none
+
+pool: 
+  name: Rakshak Pipelines
+  # Add vmImage if using Azure DevOps agents, or keep as-is for self-hosted
+
+variables:
+  workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  serviceConnection: 'rakshak-svc'
+  backendRG: 'rakshakstg1'
+  backendContainer: 'tfstate'
+  backendKey: 'dev.terraform.tfstate'
+  
+  # Optimizations
+  TF_INPUT: '0'  # Disable interactive prompts
+  TF_IN_AUTOMATION: 'true'  # Optimize for CI/CD
+  CHECKOV_SKIP_CHECK: 'CKV_CIV_1'  # Skip unnecessary checks if needed
+  
+  # Cache paths
+  TF_PLUGIN_CACHE_DIR: '$(Pipeline.Workspace)/.terraform/plugin-cache'
+
+stages:
+
+# -------------------------------
+# STAGE 1: INIT + VALIDATE + LINT + SCAN (Parallel)
+# -------------------------------
+- stage: ValidateAndScan
+  displayName: "Validate, Lint & Security Scan"
+  jobs:
+    - job: terraform_init
+      displayName: "Terraform Init & Validate"
+      steps:
+        - checkout: self
+          fetchDepth: 1  # Shallow clone for speed
+        
+        # Cache Terraform plugins
+        - task: Cache@2
+          inputs:
+            key: 'terraform | "$(Agent.OS)" | $(workingDir)/.terraform.lock.hcl'
+            path: '$(TF_PLUGIN_CACHE_DIR)'
+            cacheHitVar: 'TF_PLUGIN_CACHE_RESTORED'
+          displayName: "Cache Terraform Plugins"
+        
+        # Terraform Init with plugin caching
+        - task: TerraformTask@5
+          displayName: Terraform Init
+          inputs:
+            provider: azurerm
+            command: init
+            workingDirectory: $(workingDir)
+            backendServiceArm: $(serviceConnection)
+            backendAzureRmStorageAccountName: $(backendRG)
+            backendAzureRmContainerName: $(backendContainer)
+            backendAzureRmKey: $(backendKey)
+          env:
+            TF_PLUGIN_CACHE_DIR: $(TF_PLUGIN_CACHE_DIR)
+
+        # Validate
+        - task: TerraformTask@5
+          displayName: Terraform Validate
+          inputs:
+            provider: azurerm
+            command: validate
+            workingDirectory: $(workingDir)
+
+    - job: security_scan
+      displayName: "Security & Linting"
+      dependsOn: []  # Run in parallel with terraform_init
+      steps:
+        - checkout: self
+          fetchDepth: 1
+        
+        # Install tools once using a container or cached approach
+        - bash: |
+            # Install tools in parallel
+            pip install checkov --quiet
+            curl -sL https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64 -o /tmp/tfsec && chmod +x /tmp/tfsec
+            curl -sL https://github.com/tenable/terrascan/releases/latest/download/terrascan_linux_amd64.tar.gz | tar -xz -C /tmp
+          displayName: "Install Security Tools"
+        
+        # TFLint with caching
+        - bash: |
+            cd $(workingDir)
+            tflint --init || true
+            tflint --format=json --no-color > tflint-report.json
+          displayName: TFLint
+          continueOnError: true
+        
+        # Checkov with SARIF output for better integration
+        - bash: |
+            checkov -d $(workingDir) \
+              --output sarif \
+              --output-file-path $(Pipeline.Workspace)/checkov-output \
+              --soft-fail
+          displayName: Checkov Scan
+          continueOnError: true
+        
+        # tfsec with SARIF output
+        - bash: |
+            /tmp/tfsec $(workingDir) \
+              --format sarif \
+              --out tfsec-results.sarif \
+              --soft-fail
+          displayName: tfsec Scan
+          continueOnError: true
+        
+        # Terrascan with summary
+        - bash: |
+            /tmp/terrascan scan -i terraform -d $(workingDir) \
+              --policy-type aws,azure,gcp \
+              --config-only \
+              --severity high,medium \
+              --non-recursive
+          displayName: Terrascan
+          continueOnError: true
+        
+        # Publish security reports as artifacts
+        - task: PublishBuildArtifacts@1
+          inputs:
+            pathToPublish: '$(workingDir)/*.json'
+            artifactName: 'security-reports'
+          condition: always()
+          displayName: "Publish Security Reports"
+
+# -------------------------------
+# STAGE 2: PLAN (Optimized)
+# -------------------------------
+- stage: Plan
+  displayName: "Terraform Plan"
+  dependsOn: ValidateAndScan
+  condition: succeeded()
+  jobs:
+    - job: terraform_plan
+      steps:
+        - checkout: self
+          fetchDepth: 1
+        
+        # Restore Terraform cache from previous stage
+        - task: Cache@2
+          inputs:
+            key: 'terraform | "$(Agent.OS)" | $(workingDir)/.terraform.lock.hcl'
+            path: '$(TF_PLUGIN_CACHE_DIR)'
+          displayName: "Restore Terraform Cache"
+        
+        # Init (using cached plugins)
+        - task: TerraformTask@5
+          displayName: Terraform Init
+          inputs:
+            provider: azurerm
+            command: init
+            workingDirectory: $(workingDir)
+            backendServiceArm: $(serviceConnection)
+            backendAzureRmStorageAccountName: $(backendRG)
+            backendAzureRmContainerName: $(backendContainer)
+            backendAzureRmKey: $(backendKey)
+          env:
+            TF_PLUGIN_CACHE_DIR: $(TF_PLUGIN_CACHE_DIR)
+        
+        # Plan with detailed output
+        - task: TerraformTask@5
+          displayName: Terraform Plan
+          inputs:
+            provider: azurerm
+            command: plan
+            workingDirectory: $(workingDir)
+            environmentServiceNameAzureRM: $(serviceConnection)
+            commandOptions: "-out=tfplan -detailed-exitcode"
+          continueOnError: true
+        
+        # Generate human-readable plan summary
+        - bash: |
+            cd $(workingDir)
+            terraform show -json tfplan > plan.json
+            # Create summary using jq if available
+            echo "##vso[task.setvariable variable=PLAN_EXISTS]true"
+          displayName: "Generate Plan Summary"
+        
+        # Save artifacts (compressed)
+        - task: ArchiveFiles@2
+          inputs:
+            rootFolderOrFile: '$(workingDir)'
+            includeRootFolder: false
+            archiveType: 'tar'
+            tarCompression: 'gz'
+            archiveFile: '$(Pipeline.Workspace)/terraform-plan.tar.gz'
+          displayName: "Compress Artifacts"
+        
+        - task: PublishBuildArtifacts@1
+          inputs:
+            pathToPublish: '$(Pipeline.Workspace)/terraform-plan.tar.gz'
+            artifactName: 'terraformPlan'
+          displayName: "Publish Plan Artifact"
+
+# -------------------------------
+# STAGE 3: MANUAL APPROVAL (Enhanced)
+# -------------------------------
+- stage: Approval
+  displayName: "Manual Approval"
+  dependsOn: Plan
+  condition: succeeded()
+  jobs:
+    - job: wait_for_approval
+      pool: server
+      timeoutInMinutes: 1440 # 24 hours
+      steps:
+        - task: ManualValidation@0
+          inputs:
+            instructions: |
+              ## ✅ Terraform Plan Completed Successfully
+              
+              **Please review the changes before approving:**
+              
+              1. Download the plan artifact to review changes
+              2. Check security scan reports in artifacts
+              3. Ensure all resources comply with policies
+              
+              **Approve to proceed with Terraform Apply**
+              
+              📊 Plan Artifact: terraformPlan.tar.gz
+              🔒 Security Reports: security-reports
+            notifyUsers: 'sktripathiinfo@gmail.com'
+            timeout: '1440' # minutes
+
+# -------------------------------
+# STAGE 4: APPLY (Production Ready)
+# -------------------------------
+- stage: Apply
+  displayName: "Terraform Apply"
+  dependsOn: Approval
+  condition: succeeded()
+  jobs:
+    - deployment: terraform_apply
+      displayName: "Apply Terraform"
+      environment: 'dev'  # Link to Azure DevOps environment for tracking
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+                fetchDepth: 1
+              
+              # Download and extract artifacts
+              - task: DownloadBuildArtifacts@0
+                inputs:
+                  artifactName: 'terraformPlan'
+                  downloadPath: '$(Pipeline.Workspace)'
+              
+              - bash: |
+                  cd $(workingDir)
+                  tar -xzf $(Pipeline.Workspace)/terraformPlan/terraform-plan.tar.gz
+                displayName: "Extract Artifacts"
+              
+              # Restore Terraform cache
+              - task: Cache@2
+                inputs:
+                  key: 'terraform | "$(Agent.OS)" | $(workingDir)/.terraform.lock.hcl'
+                  path: '$(TF_PLUGIN_CACHE_DIR)'
+                displayName: "Restore Terraform Cache"
+              
+              # Init with backend config
+              - task: TerraformTask@5
+                displayName: Terraform Init
+                inputs:
+                  provider: azurerm
+                  command: init
+                  workingDirectory: $(workingDir)
+                  backendServiceArm: $(serviceConnection)
+                  backendAzureRmStorageAccountName: $(backendRG)
+                  backendAzureRmContainerName: $(backendContainer)
+                  backendAzureRmKey: $(backendKey)
+                env:
+                  TF_PLUGIN_CACHE_DIR: $(TF_PLUGIN_CACHE_DIR)
+              
+              # Apply with automatic retry for transient errors
+              - task: TerraformTask@5
+                displayName: Terraform Apply
+                inputs:
+                  provider: azurerm
+                  command: apply
+                  workingDirectory: $(workingDir)
+                  environmentServiceNameAzureRM: $(serviceConnection)
+                  commandOptions: "-auto-approve tfplan"
+                retryCountOnTaskFailure: 2
+              
+              # Post-apply validation
+              - bash: |
+                  cd $(workingDir)
+                  terraform output -json > outputs.json
+                  echo "##vso[task.setvariable variable=APPLY_SUCCESS]true"
+                displayName: "Capture Outputs"
+                condition: succeeded()
+              
+              # Publish outputs
+              - task: PublishBuildArtifacts@1
+                inputs:
+                  pathToPublish: '$(workingDir)/outputs.json'
+                  artifactName: 'terraformOutputs'
+                condition: succeeded()
+                displayName: "Publish Terraform Outputs"
+
+# -------------------------------
+# OPTIONAL: Cleanup Stage
+# -------------------------------
+- stage: Cleanup
+  displayName: "Cleanup Artifacts"
+  dependsOn: Apply
+  condition: always()
+  jobs:
+    - job: cleanup
+      steps:
+        - task: DeleteFiles@1
+          inputs:
+            contents: '**/*.tar.gz'
+          displayName: "Delete Temporary Archives"
