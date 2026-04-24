@@ -1,0 +1,198 @@
+trigger:
+  branches:
+    include:
+      - dev
+
+pr:
+  branches:
+    include:
+      - '*'
+
+pool:
+  name: Rakshak Pipelines
+
+variables:
+  workingDir: '$(System.DefaultWorkingDirectory)/Environment/Dev'
+  serviceConnection: 'rakshak-svc'
+  backendRG: 'rakshakstg1'
+  backendContainer: 'tfstate'
+  backendKey: 'dev.terraform.tfstate'
+
+  TF_INPUT: '0'
+  TF_IN_AUTOMATION: 'true'
+
+stages:
+
+# -------------------------------
+# STAGE 1: SANITY CHECK (AUTO ON PR)
+# -------------------------------
+- stage: SanityCheck
+  displayName: "Sanity Check - Lint, Security & Compliance"
+  jobs:
+    - job: sanity
+      displayName: "Run All Checks"
+      steps:
+        - checkout: self
+
+        # Install Tools
+        - bash: |
+            pip install checkov --quiet
+            curl -sL https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64 -o tfsec
+            chmod +x tfsec
+
+            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+            curl -sSL https://github.com/trufflesecurity/trufflehog/releases/latest/download/trufflehog_linux_amd64.tar.gz | tar -xz
+          displayName: "Install Tools"
+
+        # Terraform Init + Validate
+        - task: TerraformTask@5
+          displayName: Terraform Init
+          inputs:
+            provider: azurerm
+            command: init
+            workingDirectory: $(workingDir)
+            backendServiceArm: $(serviceConnection)
+            backendAzureRmStorageAccountName: $(backendRG)
+            backendAzureRmContainerName: $(backendContainer)
+            backendAzureRmKey: $(backendKey)
+
+        - task: TerraformTask@5
+          displayName: Terraform Validate
+          inputs:
+            provider: azurerm
+            command: validate
+            workingDirectory: $(workingDir)
+
+        # TFLint
+        - bash: |
+            cd $(workingDir)
+            tflint --init
+            tflint
+          displayName: "TFLint"
+
+        # Checkov
+        - bash: |
+            checkov -d $(workingDir)
+          displayName: "Checkov Scan"
+
+        # tfsec
+        - bash: |
+            ./tfsec $(workingDir)
+          displayName: "tfsec Scan"
+
+        # TruffleHog (Secrets Scan)
+        - bash: |
+            ./trufflehog filesystem --directory $(System.DefaultWorkingDirectory)
+          displayName: "TruffleHog Secrets Scan"
+
+        # Chef InSpec (Compliance Testing)
+        - bash: |
+            inspec exec . --reporter cli
+          displayName: "Chef InSpec Tests"
+
+# -------------------------------
+# STAGE 2: PLAN
+# -------------------------------
+- stage: Plan
+  displayName: "Terraform Plan"
+  dependsOn: SanityCheck
+  condition: succeeded()
+  jobs:
+    - job: terraform_plan
+      steps:
+        - checkout: self
+
+        - task: TerraformTask@5
+          displayName: Terraform Init
+          inputs:
+            provider: azurerm
+            command: init
+            workingDirectory: $(workingDir)
+            backendServiceArm: $(serviceConnection)
+            backendAzureRmStorageAccountName: $(backendRG)
+            backendAzureRmContainerName: $(backendContainer)
+            backendAzureRmKey: $(backendKey)
+
+        - task: TerraformTask@5
+          displayName: Terraform Plan
+          inputs:
+            provider: azurerm
+            command: plan
+            workingDirectory: $(workingDir)
+            environmentServiceNameAzureRM: $(serviceConnection)
+            commandOptions: "-out=tfplan"
+
+# -------------------------------
+# STAGE 3: MANUAL VALIDATION (GenTest Job)
+# -------------------------------
+- stage: Approval
+  displayName: "Manual Validation (GenTest)"
+  dependsOn: Plan
+  jobs:
+    - job: approval
+      pool: server
+      steps:
+        - task: ManualValidation@0
+          inputs:
+            instructions: |
+              Please validate the Terraform plan before deployment.
+              Ensure VM configuration and security checks are correct.
+            notifyUsers: 'sktripathiinfo@gmail.com'
+
+# -------------------------------
+# STAGE 4: APPLY (DEV)
+# -------------------------------
+- stage: Apply_Dev
+  displayName: "Deploy to Dev"
+  dependsOn: Approval
+  condition: succeeded()
+  jobs:
+    - job: apply_dev
+      steps:
+        - checkout: self
+
+        - task: TerraformTask@5
+          displayName: Terraform Init
+          inputs:
+            provider: azurerm
+            command: init
+            workingDirectory: $(workingDir)
+            backendServiceArm: $(serviceConnection)
+            backendAzureRmStorageAccountName: $(backendRG)
+            backendAzureRmContainerName: $(backendContainer)
+            backendAzureRmKey: $(backendKey)
+
+        - task: TerraformTask@5
+          displayName: Terraform Apply
+          inputs:
+            provider: azurerm
+            command: apply
+            workingDirectory: $(workingDir)
+            environmentServiceNameAzureRM: $(serviceConnection)
+            commandOptions: "-auto-approve tfplan"
+
+# -------------------------------
+# STAGE 5: APPLY (PROD - SAME FLOW)
+# -------------------------------
+- stage: Apply_Prod
+  displayName: "Deploy to Production"
+  dependsOn: Apply_Dev
+  condition: succeeded()
+  jobs:
+    - job: apply_prod
+      steps:
+        - checkout: self
+
+        - task: ManualValidation@0
+          inputs:
+            instructions: "Final approval before Production deployment"
+
+        - task: TerraformTask@5
+          displayName: Terraform Apply (Prod)
+          inputs:
+            provider: azurerm
+            command: apply
+            workingDirectory: $(workingDir)
+            environmentServiceNameAzureRM: $(serviceConnection)
+            commandOptions: "-auto-approve"
